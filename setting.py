@@ -1,5 +1,5 @@
-train_dataset_path = "../dataset/train"
-validation_dataset_path = "../dataset/validation"
+train_dataset_path = "dataset/train"
+validation_dataset_path = "dataset/validation"
 expression_classes = [
     "angry",
     "disgust",

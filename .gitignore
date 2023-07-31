@@ -1,3 +1,7 @@
-dataset/*
-disgarded/*
-proccessed_dataset/*
+dataset
+disgarded
+proccessed_dataset
+
+.git
+.gitattributes
+.gitignore
