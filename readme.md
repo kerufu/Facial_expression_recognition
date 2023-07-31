@@ -1,5 +1,4 @@
-To run:
-1. docker build . -f Dockerfile
+To run: docker build . -t "fer_train"
 
 
 Conditional AE with discriminators on feature and reconstruction, as well as a classifier

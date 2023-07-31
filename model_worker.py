@@ -1,9 +1,9 @@
-from termcolor import cprint
 import time
 
 import tensorflow as tf
 import cv2
 import numpy as np
+from termcolor import cprint
 
 import setting
 
