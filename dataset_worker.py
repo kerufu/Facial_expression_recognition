@@ -21,32 +21,38 @@ class dataset_worker():
         
     def load_dataset(self, dataset_path, processed_dataset_path):
         data = []
-        label = []
-        label_one_hot_coding = []
+        condition_label = []
+        one_hot_coding_label = []
         for ec_index in range(setting.num_classes):
             for path in glob.iglob(dataset_path+"/"+setting.expression_classes[ec_index]+"/*.jpg"):
 
                 img = cv2.imread(path, 0)
                 data.append(img)
 
-                label.append(ec_index)
-
-                one_hot_coding = [-1] * setting.num_classes
+                condition = [-1] * setting.num_classes
+                condition[ec_index] = 1
+                condition_label.append(condition)
+                
+                one_hot_coding = [0] * setting.num_classes
                 one_hot_coding[ec_index] = 1
-                label_one_hot_coding.append(one_hot_coding)
+                one_hot_coding_label.append(one_hot_coding)
 
         data = np.array(data)
         data = data / 127.5 - 1
+        data = data[:, :, :, np.newaxis]
 
-        label = np.array(label)
+        condition_label = np.array(condition_label)
 
-        label_one_hot_coding = np.array(label_one_hot_coding)
+        one_hot_coding_label = np.array(one_hot_coding_label)
         
         dataset = tf.data.Dataset.from_tensor_slices({
             "data": data,
-            "label": label,
-            "label_one_hot_coding": label_one_hot_coding
+            "condition_label": condition_label,
+            "one_hot_coding_label": one_hot_coding_label
         })
+
+        dataset = dataset.batch(setting.batch_size)
+        dataset = dataset.shuffle(setting.batch_size, reshuffle_each_iteration=True)
 
         dataset.save(processed_dataset_path)
 

@@ -1,7 +1,3 @@
 dataset
-disgarded
 proccessed_dataset
-
-.git
-.gitattributes
-.gitignore
+saved_model

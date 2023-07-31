@@ -5,4 +5,4 @@ the encoded features are in range (-1, 1), the conditional label (expression cla
 dataset: https://www.kaggle.com/datasets/jonathanoheix/face-expression-recognition-dataset?resource=download
 put the dataset in ./dataset
 
-data are normalized into range (-1, 1)
+data are normalized into range (-1, 1), train on the whole train dataset and use validation dataset as test dataset
