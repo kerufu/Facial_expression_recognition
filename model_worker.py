@@ -12,11 +12,12 @@ class encoder(tf.keras.Model):
         super(encoder, self).__init__()
         self.model = [
             tf.keras.layers.Reshape((setting.image_size, setting.image_size, 1)),
-            tf.keras.layers.Conv2D(2, 2, activation='selu', padding='same',),
-            tf.keras.layers.Conv2D(4, 2, activation='selu', padding='same'),
+            tf.keras.layers.Conv2D(16, 2, activation='selu', padding='same', kernel_regularizer=tf.keras.regularizers.L1L2()),
+            tf.keras.layers.Conv2D(32, 2, activation='selu', padding='same', kernel_regularizer=tf.keras.regularizers.L1L2()),
+            tf.keras.layers.Conv2D(64, 2, activation='selu', padding='same', kernel_regularizer=tf.keras.regularizers.L1L2()),
             tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(32, activation='selu',),
-            tf.keras.layers.Dense(setting.feature_size, activity_regularizer=tf.keras.regularizers.L1L2())
+            tf.keras.layers.Dense(64, activation='selu', kernel_regularizer=tf.keras.regularizers.L1L2()),
+            tf.keras.layers.Dense(setting.feature_size, kernel_regularizer=tf.keras.regularizers.L1L2(), activity_regularizer=tf.keras.regularizers.L1L2())
         ]
 
     def call(self, x):
@@ -28,10 +29,11 @@ class decoder(tf.keras.Model):
     def __init__(self):
         super(decoder, self).__init__()
         self.model = [
-            tf.keras.layers.Dense(setting.image_size*setting.image_size),  
-            tf.keras.layers.Reshape((setting.image_size//4, setting.image_size//4, 16)),
-            tf.keras.layers.Conv2DTranspose(2, 2, strides=2, padding='same',),
-            tf.keras.layers.Conv2DTranspose(1, 2, strides=2, padding='same',)
+            tf.keras.layers.Dense(setting.image_size*setting.image_size, kernel_regularizer=tf.keras.regularizers.L1L2()),  
+            tf.keras.layers.Reshape((setting.image_size//8, setting.image_size//8, 64)),
+            tf.keras.layers.Conv2DTranspose(32, 2, strides=2, padding='same', kernel_regularizer=tf.keras.regularizers.L1L2()),
+            tf.keras.layers.Conv2DTranspose(16, 2, strides=2, padding='same', kernel_regularizer=tf.keras.regularizers.L1L2()),
+            tf.keras.layers.Conv2DTranspose(1, 2, strides=2, padding='same', kernel_regularizer=tf.keras.regularizers.L1L2())
         ]
 
     def call(self, x):
@@ -43,8 +45,9 @@ class encoder_discriminator(tf.keras.Model):
     def __init__(self):
         super(encoder_discriminator, self).__init__()
         self.model = [
-            tf.keras.layers.Dense(8, activation='selu'),
-            tf.keras.layers.Dense(1)
+            tf.keras.layers.Dense(32, activation='selu', kernel_regularizer=tf.keras.regularizers.L1L2()),
+            tf.keras.layers.Dense(16, activation='selu', kernel_regularizer=tf.keras.regularizers.L1L2()),
+            tf.keras.layers.Dense(1, kernel_regularizer=tf.keras.regularizers.L1L2())
         ]
 
     def call(self, input):
@@ -56,9 +59,10 @@ class decoder_discriminator(tf.keras.Model):
     def __init__(self):
         super(decoder_discriminator, self).__init__()
         self.model = [
-            tf.keras.layers.Conv2D(2, 2, activation='selu'),
+            tf.keras.layers.Conv2D(8, 2, activation='selu', kernel_regularizer=tf.keras.regularizers.L1L2()),
+            tf.keras.layers.Conv2D(16, 2, activation='selu', kernel_regularizer=tf.keras.regularizers.L1L2()),
             tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(1)
+            tf.keras.layers.Dense(1, kernel_regularizer=tf.keras.regularizers.L1L2())
         ]
 
     def call(self, input):
@@ -70,8 +74,9 @@ class classifier(tf.keras.Model):
     def __init__(self):
         super(classifier, self).__init__()
         self.model = [
-            tf.keras.layers.Dense(8, activation='selu'),
-            tf.keras.layers.Dense(setting.num_classes)
+            tf.keras.layers.Dense(32, activation='selu', kernel_regularizer=tf.keras.regularizers.L1L2()),
+            tf.keras.layers.Dense(16, activation='selu', kernel_regularizer=tf.keras.regularizers.L1L2()),
+            tf.keras.layers.Dense(setting.num_classes, kernel_regularizer=tf.keras.regularizers.L1L2())
         ]
 
     def call(self, input):
@@ -134,20 +139,23 @@ class model_worker():
     def d_loss(self, input_image, output_image, dd_fake):
         loss = self.mse(input_image, output_image)
         loss += self.bfce(tf.ones_like(dd_fake), dd_fake) * setting.discriminator_weight
+        loss += tf.add_n(self.d.losses)
         return loss
     
     def ed_loss(self, ed_true, ed_fake):
         loss = self.bfce(tf.ones_like(ed_true), ed_true)
         loss += self.bfce(tf.zeros_like(ed_fake), ed_fake)
+        loss += tf.add_n(self.ed.losses)
         return loss
     
     def dd_loss(self, dd_true, dd_fake):
         loss = self.bfce(tf.ones_like(dd_true), dd_true)
         loss += self.bfce(tf.zeros_like(dd_fake), dd_fake)
+        loss += tf.add_n(self.dd.losses)
         return loss
     
     def c_loss(self, one_hot, c_pred):
-        return self.cbfce(one_hot, c_pred)
+        return self.cbfce(one_hot, c_pred) + tf.add_n(self.c.losses)
     
     @tf.function
     def train_step(self, batch):
