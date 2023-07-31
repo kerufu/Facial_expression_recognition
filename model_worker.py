@@ -3,6 +3,7 @@ import time
 
 import tensorflow as tf
 import cv2
+import numpy as np
 
 import setting
 
@@ -11,20 +12,11 @@ class encoder(tf.keras.Model):
         super(encoder, self).__init__()
         self.model = [
             tf.keras.layers.Reshape((setting.image_size, setting.image_size, 1)),
-            tf.keras.layers.Conv2D(2, 2, activation='selu', padding='same',
-                                   kernel_regularizer=tf.keras.regularizers.L1L2()
-                                   ),
-            tf.keras.layers.Conv2D(4, 2, activation='selu', padding='same',
-                                   kernel_regularizer=tf.keras.regularizers.L1L2()
-                                   ),
+            tf.keras.layers.Conv2D(2, 2, activation='selu', padding='same',),
+            tf.keras.layers.Conv2D(4, 2, activation='selu', padding='same'),
             tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(32, activation='selu',
-                                  kernel_regularizer=tf.keras.regularizers.L1L2()
-                                  ),
-            tf.keras.layers.Dense(setting.feature_size,
-                                  activity_regularizer=tf.keras.regularizers.L1L2(),
-                                  kernel_regularizer=tf.keras.regularizers.L1L2()
-                                  )
+            tf.keras.layers.Dense(32, activation='selu',),
+            tf.keras.layers.Dense(setting.feature_size, activity_regularizer=tf.keras.regularizers.L1L2())
         ]
 
     def call(self, x):
@@ -36,16 +28,10 @@ class decoder(tf.keras.Model):
     def __init__(self):
         super(decoder, self).__init__()
         self.model = [
-            tf.keras.layers.Dense(setting.image_size*setting.image_size,
-                                  kernel_regularizer=tf.keras.regularizers.L1L2()
-                                  ),  
+            tf.keras.layers.Dense(setting.image_size*setting.image_size),  
             tf.keras.layers.Reshape((setting.image_size//4, setting.image_size//4, 16)),
-            tf.keras.layers.Conv2DTranspose(2, 2, strides=2, padding='same',
-                                            kernel_regularizer=tf.keras.regularizers.L1L2()
-                                            ),
-            tf.keras.layers.Conv2DTranspose(1, 2, strides=2, padding='same',
-                                            kernel_regularizer=tf.keras.regularizers.L1L2()
-                                            )
+            tf.keras.layers.Conv2DTranspose(2, 2, strides=2, padding='same',),
+            tf.keras.layers.Conv2DTranspose(1, 2, strides=2, padding='same',)
         ]
 
     def call(self, x):
@@ -95,7 +81,7 @@ class classifier(tf.keras.Model):
     
 class model_worker():
 
-    def __init__(self, ae_iteration=1, ed_iteration=1, dd_iteration=0, c_iteration=1):
+    def __init__(self, ae_iteration=1, ed_iteration=1, dd_iteration=1, c_iteration=1):
         self.ae_iteration = ae_iteration
         self.ed_iteration = ed_iteration
         self.dd_iteration = dd_iteration
@@ -142,6 +128,7 @@ class model_worker():
         loss += self.bfce(tf.ones_like(ed_fake), ed_fake) * setting.discriminator_weight
         loss += self.bfce(tf.ones_like(dd_fake), dd_fake) * setting.discriminator_weight
         loss += self.cbfce(one_hot, c_pred)
+        loss += tf.add_n(self.e.losses)
         return loss
     
     def d_loss(self, input_image, output_image, dd_fake):
@@ -164,7 +151,7 @@ class model_worker():
     
     @tf.function
     def train_step(self, batch):
-        image, conditon, one_hot = batch["data"], batch["condition_label"], batch["one_hot_coding_label"]
+        image, condition, one_hot = batch["data"], batch["condition_label"], batch["one_hot_coding_label"]
         for _ in range(self.ed_iteration):
             with tf.GradientTape() as ed_tape:
                 features = self.e(image)
@@ -184,7 +171,7 @@ class model_worker():
         for _ in range(self.dd_iteration):
             with tf.GradientTape() as dd_tape:
                 features = self.e(image)
-                decoded_image = self.d(tf.concat([features, tf.cast(conditon, tf.float32)], 1))
+                decoded_image = self.d(tf.concat([features, tf.cast(condition, tf.float32)], 1))
 
                 dd_true = self.dd(image)
                 dd_fake = self.dd(decoded_image)
@@ -201,7 +188,7 @@ class model_worker():
             with tf.GradientTape() as e_tape:
                 with tf.GradientTape() as d_tape:
                     features = self.e(image)
-                    decoded_image = self.d(tf.concat([features, tf.cast(one_hot, tf.float32)], 1))
+                    decoded_image = self.d(tf.concat([features, tf.cast(condition, tf.float32)], 1))
                     ed_fake = self.ed(features)
                     dd_fake = self.dd(decoded_image)
                     c_pred = self.c(features)
@@ -226,15 +213,15 @@ class model_worker():
             c_gradient = c_tape.gradient(c_loss, self.c.trainable_variables)
             self.c_opt.apply_gradients(zip(c_gradient, self.c.trainable_variables))
 
-            self.c_train_metric.update_state(one_hot, tf.nn.softmax(c_pred))
+            self.c_train_metric.update_state(one_hot, c_pred)
 
     @tf.function
     def test_step(self, batch):
-        image, conditon, one_hot = batch["data"], batch["condition_label"], batch["one_hot_coding_label"]
+        image, condition, one_hot = batch["data"], batch["condition_label"], batch["one_hot_coding_label"]
         noise = tf.random.normal([setting.batch_size, setting.feature_size])
 
         features = self.e(image)
-        decoded_image = self.d(tf.concat([features, tf.cast(conditon, tf.float32)], 1))
+        decoded_image = self.d(tf.concat([features, tf.cast(condition, tf.float32)], 1))
         ed_true = self.ed(noise)
         ed_fake = self.ed(features)
         dd_true = self.dd(image)
@@ -246,7 +233,7 @@ class model_worker():
         self.dd_test_metric.update_state(tf.ones_like(dd_true), dd_true)
         self.dd_test_metric.update_state(tf.zeros_like(dd_fake), dd_fake)
         self.ae_test_metric.update_state(image, decoded_image)
-        self.c_test_metric.update_state(one_hot, tf.nn.softmax(c_pred))
+        self.c_test_metric.update_state(one_hot, c_pred)
 
         return decoded_image
     
@@ -285,11 +272,11 @@ class model_worker():
             self.e.save(setting.encoder_path)
             self.d.save(setting.decoder_path)
             self.ed.save(setting.encoder_discriminator_path)
-            # self.dd.save(setting.decoder_discriminator_path)
+            self.dd.save(setting.decoder_discriminator_path)
             self.c.save(setting.classifier_path)
 
-            cv2.imwrite(setting.sample_decoded_image, (decoded_image+1)*127.5)
-            cv2.imwrite(setting.sample_decoded_image, (decoded_image+1)*127.5)
+            cv2.imwrite(setting.sample_image, np.array((image+1)*127.5))
+            cv2.imwrite(setting.sample_decoded_image, np.array((decoded_image+1)*127.5))
 
 
 

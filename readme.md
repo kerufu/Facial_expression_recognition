@@ -6,3 +6,8 @@ dataset: https://www.kaggle.com/datasets/jonathanoheix/face-expression-recogniti
 put the dataset in ./dataset
 
 data are normalized into range (-1, 1), train on the whole train dataset and use validation dataset as test dataset
+
+due to limited computing capability
+1. reduced model scale
+2. removed regularizers for less "flexible" model
+will perform better if upscale the model, especially auto encoder
