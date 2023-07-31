@@ -1,4 +1,2 @@
-tensorflow
-numpy
 opencv-python
 termcolor
