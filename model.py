@@ -21,14 +21,14 @@ class custom_conv2d(tf.keras.layers.Layer):
     
 class custom_conv2dtp(tf.keras.layers.Layer):
 
-    def __init__(self, num_channel, kernel_size, strides):
+    def __init__(self, num_channel, kernel_size):
         super(custom_conv2dtp, self).__init__()
         self.model = [
-            tf.keras.layers.Conv2DTranspose(num_channel, kernel_size, strides=strides, padding='same', kernel_regularizer=tf.keras.regularizers.L1L2()),
+            tf.keras.layers.Conv2DTranspose(num_channel, kernel_size, strides=2, padding='same', kernel_regularizer=tf.keras.regularizers.L1L2()),
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Activation('selu'),
             tf.keras.layers.Dropout(0.1)
-            ]
+        ]
 
     def call(self, x):
         for layer in self.model:
@@ -37,10 +37,10 @@ class custom_conv2dtp(tf.keras.layers.Layer):
     
 class custom_dense(tf.keras.layers.Layer):
 
-    def __init__(self, output_size, activity_regularizer=None):
+    def __init__(self, output_size):
         super(custom_dense, self).__init__()
         self.model = [
-            tf.keras.layers.Dense(output_size, kernel_regularizer=tf.keras.regularizers.L1L2(), activity_regularizer=activity_regularizer),
+            tf.keras.layers.Dense(output_size, kernel_regularizer=tf.keras.regularizers.L1L2()),
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Activation('selu'),
             tf.keras.layers.Dropout(0.1)
@@ -59,7 +59,7 @@ class encoder(tf.keras.Model):
             custom_conv2d(32, 2),
             tf.keras.layers.Flatten(),
             custom_dense(64),
-            custom_dense(setting.feature_size, activity_regularizer=tf.keras.regularizers.L1L2())
+            tf.keras.layers.Dense(setting.feature_size, kernel_regularizer=tf.keras.regularizers.L1L2(), activity_regularizer=tf.keras.regularizers.L1L2()),
         ]
 
     def call(self, x):
@@ -73,9 +73,9 @@ class decoder(tf.keras.Model):
         self.model = [
             custom_dense(setting.image_size*setting.image_size),  
             tf.keras.layers.Reshape((setting.image_size//8, setting.image_size//8, 64)),
-            custom_conv2dtp(32, 2, 2),
-            custom_conv2dtp(16, 2, 2),
-            custom_conv2dtp(1, 2, 2),
+            custom_conv2dtp(32, 2),
+            custom_conv2dtp(16, 2),
+            tf.keras.layers.Conv2DTranspose(1, 2, strides=2, padding='same', kernel_regularizer=tf.keras.regularizers.L1L2()),
         ]
 
     def call(self, x):
