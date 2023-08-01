@@ -14,9 +14,11 @@ data are normalized into range (-1, 1), train on the whole train dataset and use
 
 Docker usage:
 
-To build image: docker build . -t "fer_train"
+To build image: docker build . -t tensorflow_opencv
 
-To create container and start: docker run -e PYTHONUNBUFFERED=1 --gpus all "fer_train"
+To create container and start: docker run -e PYTHONUNBUFFERED=1 --gpus all tensorflow_opencv bash
+
+To copy files from/to container: https://support.sitecore.com/kb?id=kb_article_view&sysparm_article=KB0383441
 
 To set up GPU on windows docker:
 1. upgrade nvidia driver
