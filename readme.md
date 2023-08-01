@@ -15,7 +15,7 @@ To build image: docker build . -t "fer_train"
 To create container and start: docker run -e PYTHONUNBUFFERED=1 --gpus all "fer_train"
 
 To set up GPU on windows docker:
-1. upgrade nvidia drive
+1. upgrade nvidia driver
 2. wsl --install in administrator mode
 3. enable wsl2 and ubuntu in docker
 4. follow the instruction: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#install-guide
