@@ -6,84 +6,8 @@ import numpy as np
 from termcolor import cprint
 
 import setting
+from model import encoder, decoder, encoder_discriminator, decoder_discriminator, classifier
 
-class encoder(tf.keras.Model):
-    def __init__(self):
-        super(encoder, self).__init__()
-        self.model = [
-            tf.keras.layers.Reshape((setting.image_size, setting.image_size, 1)),
-            tf.keras.layers.Conv2D(16, 2, activation='selu', padding='same', kernel_regularizer=tf.keras.regularizers.L1L2()),
-            tf.keras.layers.Conv2D(32, 2, activation='selu', padding='same', kernel_regularizer=tf.keras.regularizers.L1L2()),
-            tf.keras.layers.Conv2D(64, 2, activation='selu', padding='same', kernel_regularizer=tf.keras.regularizers.L1L2()),
-            tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(64, activation='selu', kernel_regularizer=tf.keras.regularizers.L1L2()),
-            tf.keras.layers.Dense(setting.feature_size, kernel_regularizer=tf.keras.regularizers.L1L2(), activity_regularizer=tf.keras.regularizers.L1L2())
-        ]
-
-    def call(self, x):
-        for layer in self.model:
-            x = layer(x)
-        return x
-    
-class decoder(tf.keras.Model):
-    def __init__(self):
-        super(decoder, self).__init__()
-        self.model = [
-            tf.keras.layers.Dense(setting.image_size*setting.image_size, kernel_regularizer=tf.keras.regularizers.L1L2()),  
-            tf.keras.layers.Reshape((setting.image_size//8, setting.image_size//8, 64)),
-            tf.keras.layers.Conv2DTranspose(32, 2, strides=2, padding='same', kernel_regularizer=tf.keras.regularizers.L1L2()),
-            tf.keras.layers.Conv2DTranspose(16, 2, strides=2, padding='same', kernel_regularizer=tf.keras.regularizers.L1L2()),
-            tf.keras.layers.Conv2DTranspose(1, 2, strides=2, padding='same', kernel_regularizer=tf.keras.regularizers.L1L2())
-        ]
-
-    def call(self, x):
-        for layer in self.model:
-            x = layer(x)
-        return x
-    
-class encoder_discriminator(tf.keras.Model):
-    def __init__(self):
-        super(encoder_discriminator, self).__init__()
-        self.model = [
-            tf.keras.layers.Dense(32, activation='selu', kernel_regularizer=tf.keras.regularizers.L1L2()),
-            tf.keras.layers.Dense(16, activation='selu', kernel_regularizer=tf.keras.regularizers.L1L2()),
-            tf.keras.layers.Dense(1, kernel_regularizer=tf.keras.regularizers.L1L2())
-        ]
-
-    def call(self, input):
-        for l in self.model:
-            input = l(input)
-        return input
-    
-class decoder_discriminator(tf.keras.Model):
-    def __init__(self):
-        super(decoder_discriminator, self).__init__()
-        self.model = [
-            tf.keras.layers.Conv2D(8, 2, activation='selu', kernel_regularizer=tf.keras.regularizers.L1L2()),
-            tf.keras.layers.Conv2D(16, 2, activation='selu', kernel_regularizer=tf.keras.regularizers.L1L2()),
-            tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(1, kernel_regularizer=tf.keras.regularizers.L1L2())
-        ]
-
-    def call(self, input):
-        for l in self.model:
-            input = l(input)
-        return input
-    
-class classifier(tf.keras.Model):
-    def __init__(self):
-        super(classifier, self).__init__()
-        self.model = [
-            tf.keras.layers.Dense(32, activation='selu', kernel_regularizer=tf.keras.regularizers.L1L2()),
-            tf.keras.layers.Dense(16, activation='selu', kernel_regularizer=tf.keras.regularizers.L1L2()),
-            tf.keras.layers.Dense(setting.num_classes, kernel_regularizer=tf.keras.regularizers.L1L2())
-        ]
-
-    def call(self, input):
-        for l in self.model:
-            input = l(input)
-        return input
-    
 class model_worker():
 
     def __init__(self, ae_iteration=1, ed_iteration=1, dd_iteration=1, c_iteration=1):
@@ -285,14 +209,3 @@ class model_worker():
 
             cv2.imwrite(setting.sample_image, np.array((image+1)*127.5))
             cv2.imwrite(setting.sample_decoded_image, np.array((decoded_image+1)*127.5))
-
-
-
-
-
-
-
-
-
-
-
