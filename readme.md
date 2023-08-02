@@ -18,21 +18,7 @@ To build image: docker build . -t tensorflow_opencv
 
 To create container and start: docker run --name fer -e PYTHONUNBUFFERED=1 -it --gpus all tensorflow_opencv
 
-To copy files from/to container:
-
-docker cp dataset fer:/fer
-
-docker cp dataset_worker.py fer:/fer
-
-docker cp main.py fer:/fer
-
-docker cp model.py fer:/fer
-
-docker cp model_worker.py fer:/fer
-
-docker cp setting.py fer:/fer
-
-docker cp fer:/fer/sample_decoded_image.jpg .
+To copy files from/to container: transfer_code_to_container.sh fetch_decoded_image.sh
 
 To set up GPU on windows docker:
 1. upgrade nvidia driver

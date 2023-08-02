@@ -1,0 +1,1 @@
+docker cp fer:/fer/sample_decoded_image.jpg .
