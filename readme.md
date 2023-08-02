@@ -16,7 +16,7 @@ Docker usage:
 
 To build image: docker build . -t tensorflow_opencv
 
-To create container and start: docker run -e PYTHONUNBUFFERED=1 --gpus all tensorflow_opencv bash
+To create container and start: docker run -e PYTHONUNBUFFERED=1 -it --gpus all tensorflow_opencv
 
 To copy files from/to container: https://support.sitecore.com/kb?id=kb_article_view&sysparm_article=KB0383441
 
