@@ -32,11 +32,11 @@ class model_worker():
         except:
             print("model weight not found")
 
-        self.e_opt = tf.keras.optimizers.Adam(clipnorm=1.0)
-        self.d_opt = tf.keras.optimizers.Adam(clipnorm=1.0)
-        self.ed_opt = tf.keras.optimizers.Adam(clipnorm=1.0)
-        self.dd_opt = tf.keras.optimizers.Adam(clipnorm=1.0)
-        self.c_opt = tf.keras.optimizers.Adam(clipnorm=1.0)
+        self.e_opt = tf.keras.optimizers.Adam(learning_rate=0.0001, clipnorm=1.0)
+        self.d_opt = tf.keras.optimizers.Adam(learning_rate=0.0001, clipnorm=1.0)
+        self.ed_opt = tf.keras.optimizers.Adam(learning_rate=0.0001, clipnorm=1.0)
+        self.dd_opt = tf.keras.optimizers.Adam(learning_rate=0.0001, clipnorm=1.0)
+        self.c_opt = tf.keras.optimizers.Adam(learning_rate=0.0001, clipnorm=1.0)
 
         self.mse = tf.keras.losses.MeanSquaredError()
         self.bfce = tf.keras.losses.BinaryFocalCrossentropy(from_logits=True)
@@ -170,6 +170,8 @@ class model_worker():
         return decoded_image
     
     def train(self, epoch, train_dataset, validation_dataset):
+        train_dataset = train_dataset.shuffle(setting.batch_size, reshuffle_each_iteration=True)
+        validation_dataset = validation_dataset.shuffle(setting.batch_size, reshuffle_each_iteration=True)
         for epoch_num in range(epoch):
             start = time.time()
             self.ae_train_metric.reset_state()

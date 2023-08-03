@@ -13,8 +13,8 @@ num_classes = len(expression_classes)
 
 image_size = 48
 
-processed_train_dataset_path = "proccessed_dataset/train"
-processed_validation_dataset_path = "proccessed_dataset/validation"
+processed_train_dataset_path = "processed_dataset/train"
+processed_validation_dataset_path = "processed_dataset/validation"
 
 feature_size = 128
 
@@ -26,7 +26,7 @@ classifier_path = "saved_model/classifier"
 
 discriminator_weight = 0.3
 
-batch_size = 50
+batch_size = 128
 
 sample_image = "sample_image.jpg"
 sample_decoded_image = "sample_decoded_image.jpg"

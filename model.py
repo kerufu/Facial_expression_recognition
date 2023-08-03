@@ -55,10 +55,12 @@ class encoder(tf.keras.Model):
     def __init__(self):
         super(encoder, self).__init__()
         self.model = [
-            custom_conv2d(16, 2),
             custom_conv2d(32, 2),
+            custom_conv2d(64, 2),
+            custom_conv2d(128, 2),
+            custom_conv2d(256, 2),
             tf.keras.layers.Flatten(),
-            custom_dense(64),
+            custom_dense(256),
             tf.keras.layers.Dense(setting.feature_size, kernel_regularizer=tf.keras.regularizers.L1L2(), activity_regularizer=tf.keras.regularizers.L1L2()),
         ]
 
@@ -72,9 +74,10 @@ class decoder(tf.keras.Model):
         super(decoder, self).__init__()
         self.model = [
             custom_dense(setting.image_size*setting.image_size),  
-            tf.keras.layers.Reshape((setting.image_size//8, setting.image_size//8, 64)),
+            tf.keras.layers.Reshape((setting.image_size//16, setting.image_size//16, 256)),
+            custom_conv2dtp(128, 2),
+            custom_conv2dtp(64, 2),
             custom_conv2dtp(32, 2),
-            custom_conv2dtp(16, 2),
             tf.keras.layers.Conv2DTranspose(1, 2, strides=2, padding='same', kernel_regularizer=tf.keras.regularizers.L1L2()),
         ]
 
@@ -87,8 +90,8 @@ class encoder_discriminator(tf.keras.Model):
     def __init__(self):
         super(encoder_discriminator, self).__init__()
         self.model = [
+            custom_dense(64),
             custom_dense(32),
-            custom_dense(16),
             tf.keras.layers.Dense(1, kernel_regularizer=tf.keras.regularizers.L1L2()),
         ]
 
@@ -101,8 +104,8 @@ class decoder_discriminator(tf.keras.Model):
     def __init__(self):
         super(decoder_discriminator, self).__init__()
         self.model = [
-            custom_conv2d(8, 2),
-            custom_conv2d(16, 2),
+            custom_conv2d(64, 2),
+            custom_conv2d(128, 2),
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(1, kernel_regularizer=tf.keras.regularizers.L1L2()),
         ]
@@ -116,8 +119,8 @@ class classifier(tf.keras.Model):
     def __init__(self):
         super(classifier, self).__init__()
         self.model = [
+            custom_dense(64),
             custom_dense(32),
-            custom_dense(16),
             tf.keras.layers.Dense(setting.num_classes, kernel_regularizer=tf.keras.regularizers.L1L2()),
         ]
 

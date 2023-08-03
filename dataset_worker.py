@@ -20,6 +20,7 @@ class dataset_worker():
         
         
     def load_dataset(self, dataset_path, processed_dataset_path):
+        print("load data from raw")
         data = []
         condition_label = []
         one_hot_coding_label = []
@@ -52,7 +53,8 @@ class dataset_worker():
         })
 
         dataset = dataset.batch(setting.batch_size)
-        dataset = dataset.shuffle(setting.batch_size, reshuffle_each_iteration=True)
+        # bug of tensorflow dataset, cannot save reshuffle_each_iteration
+        # dataset = dataset.shuffle(setting.batch_size, reshuffle_each_iteration=True) 
 
         dataset.save(processed_dataset_path)
 
