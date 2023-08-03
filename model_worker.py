@@ -89,8 +89,8 @@ class model_worker():
                 features = self.e(image)
                 noise = tf.random.normal([setting.batch_size, setting.feature_size])
                 
-                ed_true = self.ed(noise)
-                ed_fake = self.ed(features)
+                ed_true = self.ed(noise, training=True)
+                ed_fake = self.ed(features, training=True)
 
                 ed_loss = self.ed_loss(ed_true, ed_fake)
 
@@ -105,8 +105,8 @@ class model_worker():
                 features = self.e(image)
                 decoded_image = self.d(tf.concat([features, tf.cast(condition, tf.float32)], 1))
 
-                dd_true = self.dd(image)
-                dd_fake = self.dd(decoded_image)
+                dd_true = self.dd(image, training=True)
+                dd_fake = self.dd(decoded_image, training=True)
 
                 dd_loss = self.dd_loss(dd_true, dd_fake)
 
@@ -119,8 +119,8 @@ class model_worker():
         for _ in range(self.ae_iteration):
             with tf.GradientTape() as e_tape:
                 with tf.GradientTape() as d_tape:
-                    features = self.e(image)
-                    decoded_image = self.d(tf.concat([features, tf.cast(condition, tf.float32)], 1))
+                    features = self.e(image, training=True)
+                    decoded_image = self.d(tf.concat([features, tf.cast(condition, tf.float32)], 1), training=True)
                     ed_fake = self.ed(features)
                     dd_fake = self.dd(decoded_image)
                     c_pred = self.c(features)
@@ -138,7 +138,7 @@ class model_worker():
         for _ in range(self.c_iteration):
             with tf.GradientTape() as c_tape:
                 features = self.e(image)
-                c_pred = self.c(features)
+                c_pred = self.c(features, training=True)
 
                 c_loss = self.c_loss(one_hot, c_pred)
             

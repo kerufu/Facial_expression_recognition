@@ -11,12 +11,15 @@ class custom_conv2d(tf.keras.layers.Layer):
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Activation('selu'),
             tf.keras.layers.MaxPooling2D(),
-            tf.keras.layers.Dropout(0.1)
+            tf.keras.layers.Dropout(0.2)
         ]
 
-    def call(self, x):
+    def call(self, x, training):
         for layer in self.model:
-            x = layer(x)
+            if "dropout" in layer.name:
+                x = layer(x, training)
+            else:
+                x = layer(x)
         return x
     
 class custom_conv2dtp(tf.keras.layers.Layer):
@@ -27,12 +30,15 @@ class custom_conv2dtp(tf.keras.layers.Layer):
             tf.keras.layers.Conv2DTranspose(num_channel, kernel_size, strides=2, padding='same', kernel_regularizer=tf.keras.regularizers.L1L2()),
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Activation('selu'),
-            tf.keras.layers.Dropout(0.1)
+            tf.keras.layers.Dropout(0.2)
         ]
 
-    def call(self, x):
+    def call(self, x, training):
         for layer in self.model:
-            x = layer(x)
+            if "dropout" in layer.name:
+                x = layer(x, training)
+            else:
+                x = layer(x)
         return x
     
 class custom_dense(tf.keras.layers.Layer):
@@ -43,47 +49,56 @@ class custom_dense(tf.keras.layers.Layer):
             tf.keras.layers.Dense(output_size, kernel_regularizer=tf.keras.regularizers.L1L2()),
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Activation('selu'),
-            tf.keras.layers.Dropout(0.1)
+            tf.keras.layers.Dropout(0.2)
         ]
 
-    def call(self, x):
+    def call(self, x, training):
         for layer in self.model:
-            x = layer(x)
+            if "dropout" in layer.name:
+                x = layer(x, training)
+            else:
+                x = layer(x)
         return x
 
 class encoder(tf.keras.Model):
     def __init__(self):
         super(encoder, self).__init__()
         self.model = [
-            custom_conv2d(32, 2),
-            custom_conv2d(64, 2),
-            custom_conv2d(128, 2),
-            custom_conv2d(256, 2),
+            custom_conv2d(64, 5),
+            custom_conv2d(128, 5),
+            custom_conv2d(256, 3),
+            custom_conv2d(512, 2),
             tf.keras.layers.Flatten(),
             custom_dense(256),
             tf.keras.layers.Dense(setting.feature_size, kernel_regularizer=tf.keras.regularizers.L1L2(), activity_regularizer=tf.keras.regularizers.L1L2()),
         ]
 
-    def call(self, x):
+    def call(self, x, training=False):
         for layer in self.model:
-            x = layer(x)
+            if "custom" in layer.name:
+                x = layer(x, training)
+            else:
+                x = layer(x)
         return x
     
 class decoder(tf.keras.Model):
     def __init__(self):
         super(decoder, self).__init__()
         self.model = [
-            custom_dense(setting.image_size*setting.image_size),  
-            tf.keras.layers.Reshape((setting.image_size//16, setting.image_size//16, 256)),
-            custom_conv2dtp(128, 2),
-            custom_conv2dtp(64, 2),
-            custom_conv2dtp(32, 2),
-            tf.keras.layers.Conv2DTranspose(1, 2, strides=2, padding='same', kernel_regularizer=tf.keras.regularizers.L1L2()),
+            custom_dense(setting.image_size*setting.image_size*2),  
+            tf.keras.layers.Reshape((setting.image_size//16, setting.image_size//16, 512)),
+            custom_conv2dtp(256, 2),
+            custom_conv2dtp(128, 3),
+            custom_conv2dtp(64, 5),
+            tf.keras.layers.Conv2DTranspose(1, 5, strides=2, padding='same', kernel_regularizer=tf.keras.regularizers.L1L2()),
         ]
 
-    def call(self, x):
+    def call(self, x, training=False):
         for layer in self.model:
-            x = layer(x)
+            if "custom" in layer.name:
+                x = layer(x, training)
+            else:
+                x = layer(x)
         return x
     
 class encoder_discriminator(tf.keras.Model):
@@ -95,25 +110,31 @@ class encoder_discriminator(tf.keras.Model):
             tf.keras.layers.Dense(1, kernel_regularizer=tf.keras.regularizers.L1L2()),
         ]
 
-    def call(self, input):
-        for l in self.model:
-            input = l(input)
-        return input
+    def call(self, x, training=False):
+        for layer in self.model:
+            if "custom" in layer.name:
+                x = layer(x, training)
+            else:
+                x = layer(x)
+        return x
     
 class decoder_discriminator(tf.keras.Model):
     def __init__(self):
         super(decoder_discriminator, self).__init__()
         self.model = [
-            custom_conv2d(64, 2),
-            custom_conv2d(128, 2),
+            custom_conv2d(64, 3),
+            custom_conv2d(128, 3),
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(1, kernel_regularizer=tf.keras.regularizers.L1L2()),
         ]
 
-    def call(self, input):
-        for l in self.model:
-            input = l(input)
-        return input
+    def call(self, x, training=False):
+        for layer in self.model:
+            if "custom" in layer.name:
+                x = layer(x, training)
+            else:
+                x = layer(x)
+        return x
     
 class classifier(tf.keras.Model):
     def __init__(self):
@@ -124,8 +145,11 @@ class classifier(tf.keras.Model):
             tf.keras.layers.Dense(setting.num_classes, kernel_regularizer=tf.keras.regularizers.L1L2()),
         ]
 
-    def call(self, input):
-        for l in self.model:
-            input = l(input)
-        return input
+    def call(self, x, training=False):
+        for layer in self.model:
+            if "custom" in layer.name:
+                x = layer(x, training)
+            else:
+                x = layer(x)
+        return x
     

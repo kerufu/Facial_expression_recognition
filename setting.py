@@ -16,7 +16,7 @@ image_size = 48
 processed_train_dataset_path = "processed_dataset/train"
 processed_validation_dataset_path = "processed_dataset/validation"
 
-feature_size = 128
+feature_size = 512
 
 encoder_path = "saved_model/encoder"
 decoder_path = "saved_model/decoder"
