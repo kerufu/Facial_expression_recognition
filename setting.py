@@ -24,7 +24,7 @@ encoder_discriminator_path = "saved_model/encoder_discriminator"
 decoder_discriminator_path = "saved_model/decoder_discriminator"
 classifier_path = "saved_model/classifier"
 
-discriminator_weight = 0.1
+discriminator_weight = 0.01
 
 batch_size = 128
 
