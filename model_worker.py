@@ -189,6 +189,15 @@ class model_worker():
                 image = batch["data"][0, :]
                 decoded_image = self.test_step(batch)[0, :]
 
+            self.e.save(setting.encoder_path)
+            self.d.save(setting.decoder_path)
+            self.ed.save(setting.encoder_discriminator_path)
+            self.dd.save(setting.decoder_discriminator_path)
+            self.c.save(setting.classifier_path)
+
+            cv2.imwrite(setting.sample_image, np.array((image+1)*127.5))
+            cv2.imwrite(setting.sample_decoded_image, np.array((decoded_image+1)*127.5))
+
             cprint('Time for epoch {} is {} sec'.format(epoch_num + 1, time.time()-start), 'red')
 
             print("Train AutoEncoder Loss: " + str(self.ae_train_metric.result().numpy()))
@@ -202,12 +211,3 @@ class model_worker():
 
             print("Train Classifier Accuracy: " + str(self.c_train_metric.result().numpy()))
             print("Test Classifier Accuracy: " + str(self.c_test_metric.result().numpy()))
-
-            self.e.save(setting.encoder_path)
-            self.d.save(setting.decoder_path)
-            self.ed.save(setting.encoder_discriminator_path)
-            self.dd.save(setting.decoder_discriminator_path)
-            self.c.save(setting.classifier_path)
-
-            cv2.imwrite(setting.sample_image, np.array((image+1)*127.5))
-            cv2.imwrite(setting.sample_decoded_image, np.array((decoded_image+1)*127.5))

@@ -5,4 +5,4 @@ epoch = input("Please enter number of epoch: ")
 print("You entered: " + epoch)
 mw = model_worker()
 dw = dataset_worker()
-mw.train(int(epoch), dw.train_dataset, dw.validation_dataset)
+mw.train(int(epoch), dw.train_dataset, dw.validation_dataset)2

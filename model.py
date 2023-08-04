@@ -64,6 +64,7 @@ class encoder(tf.keras.Model):
     def __init__(self):
         super(encoder, self).__init__()
         self.model = [
+            tf.keras.layers.InputLayer(input_shape=(setting.image_size, setting.image_size, 3)),
             custom_conv2d(64, 3),
             custom_conv2d(128, 3),
             custom_conv2d(256, 2),
@@ -84,6 +85,7 @@ class decoder(tf.keras.Model):
     def __init__(self):
         super(decoder, self).__init__()
         self.model = [
+            tf.keras.layers.InputLayer(input_shape=(setting.feature_size+setting.num_classes)),
             custom_dense(setting.image_size*setting.image_size*4),  
             tf.keras.layers.Reshape((setting.image_size//8, setting.image_size//8, 256)),
             custom_conv2dtp(128, 2),
@@ -103,6 +105,7 @@ class encoder_discriminator(tf.keras.Model):
     def __init__(self):
         super(encoder_discriminator, self).__init__()
         self.model = [
+            tf.keras.layers.InputLayer(input_shape=(setting.feature_size)),
             custom_dense(32),
             tf.keras.layers.Dense(1, kernel_regularizer=tf.keras.regularizers.L1L2()),
         ]
@@ -119,6 +122,7 @@ class decoder_discriminator(tf.keras.Model):
     def __init__(self):
         super(decoder_discriminator, self).__init__()
         self.model = [
+            tf.keras.layers.InputLayer(input_shape=(setting.image_size, setting.image_size, 1)),
             custom_conv2d(64, 3),
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(1, kernel_regularizer=tf.keras.regularizers.L1L2()),
@@ -136,6 +140,7 @@ class classifier(tf.keras.Model):
     def __init__(self):
         super(classifier, self).__init__()
         self.model = [
+            tf.keras.layers.InputLayer(input_shape=(setting.feature_size)),
             custom_dense(32),
             tf.keras.layers.Dense(setting.num_classes, kernel_regularizer=tf.keras.regularizers.L1L2()),
         ]
