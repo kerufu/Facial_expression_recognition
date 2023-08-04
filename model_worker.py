@@ -40,7 +40,7 @@ class model_worker():
 
         self.mse = tf.keras.losses.MeanSquaredError()
         self.bfce = tf.keras.losses.BinaryFocalCrossentropy(from_logits=True)
-        self.cbfce = tf.keras.losses.CategoricalFocalCrossentropy(from_logits=True)
+        self.cfce = tf.keras.losses.CategoricalFocalCrossentropy(from_logits=True)
 
         self.ae_train_metric = tf.keras.metrics.MeanSquaredError()
         self.ed_train_metric = tf.keras.metrics.BinaryAccuracy(threshold=0)
@@ -56,7 +56,7 @@ class model_worker():
         loss = self.mse(input_image, output_image)
         loss += self.bfce(tf.ones_like(ed_fake), ed_fake) * setting.discriminator_weight
         loss += self.bfce(tf.ones_like(dd_fake), dd_fake) * setting.discriminator_weight
-        loss += self.cbfce(one_hot, c_pred)
+        loss += self.cfce(one_hot, c_pred)
         loss += tf.add_n(self.e.losses)
         return loss
     
@@ -76,7 +76,7 @@ class model_worker():
         return loss
     
     def c_loss(self, one_hot, c_pred):
-        return self.cbfce(one_hot, c_pred)
+        return self.cfce(one_hot, c_pred)
     
     @tf.function
     def train_step(self, batch):
