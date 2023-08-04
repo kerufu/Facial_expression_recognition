@@ -32,11 +32,11 @@ class model_worker():
         except:
             print("model weight not found")
 
-        self.e_opt = tf.keras.optimizers.Adam(clipnorm=1.0)
-        self.d_opt = tf.keras.optimizers.Adam(clipnorm=1.0)
-        self.ed_opt = tf.keras.optimizers.Adam(clipnorm=1.0)
-        self.dd_opt = tf.keras.optimizers.Adam(clipnorm=1.0)
-        self.c_opt = tf.keras.optimizers.Adam(clipnorm=1.0)
+        self.e_opt = tf.keras.optimizers.Adam(learning_rate=0.0001, clipnorm=1.0)
+        self.d_opt = tf.keras.optimizers.Adam(learning_rate=0.0001, clipnorm=1.0)
+        self.ed_opt = tf.keras.optimizers.Adam(learning_rate=0.0001, clipnorm=1.0)
+        self.dd_opt = tf.keras.optimizers.Adam(learning_rate=0.0001, clipnorm=1.0)
+        self.c_opt = tf.keras.optimizers.Adam(learning_rate=0.0001, clipnorm=1.0)
 
         self.mse = tf.keras.losses.MeanSquaredError()
         self.bfce = tf.keras.losses.BinaryFocalCrossentropy(from_logits=True)
