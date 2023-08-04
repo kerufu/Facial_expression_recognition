@@ -63,23 +63,20 @@ class model_worker():
     def d_loss(self, input_image, output_image, dd_fake):
         loss = self.mse(input_image, output_image)
         loss += self.bfce(tf.ones_like(dd_fake), dd_fake) * setting.discriminator_weight
-        loss += tf.add_n(self.d.losses)
         return loss
     
     def ed_loss(self, ed_true, ed_fake):
         loss = self.bfce(tf.ones_like(ed_true), ed_true)
         loss += self.bfce(tf.zeros_like(ed_fake), ed_fake)
-        loss += tf.add_n(self.ed.losses)
         return loss
     
     def dd_loss(self, dd_true, dd_fake):
         loss = self.bfce(tf.ones_like(dd_true), dd_true)
         loss += self.bfce(tf.zeros_like(dd_fake), dd_fake)
-        loss += tf.add_n(self.dd.losses)
         return loss
     
     def c_loss(self, one_hot, c_pred):
-        return self.cbfce(one_hot, c_pred) + tf.add_n(self.c.losses)
+        return self.cbfce(one_hot, c_pred)
     
     @tf.function
     def train_step(self, batch):
