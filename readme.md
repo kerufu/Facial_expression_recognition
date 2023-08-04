@@ -2,7 +2,7 @@ Conditional AE with discriminators on feature and reconstruction, as well as a c
 
 Reason for using CAAE to encode image before classifying:
 1. GAN based data augmentation, more precisely train encoder and classifier (the only two module actually running after deployment), achieve better performance with the same model scale
-2. with finer training, the model size can be reduced and kernal regularization and dropout (redundant neurals) can be removed
+2. with finer training, kernal regularization and dropout (redundant neurals) can be removed, the scale of model to train increases but scale of  model to inference decreases
 
 Consider reduce the model scale and remove some regulations
 
