@@ -39,8 +39,8 @@ class model_worker():
         self.c_opt = tf.keras.optimizers.Adam(learning_rate=0.0001, clipnorm=1.0)
 
         self.mse = tf.keras.losses.MeanSquaredError()
-        self.bfce = tf.keras.losses.BinaryFocalCrossentropy(from_logits=True)
-        self.cfce = tf.keras.losses.CategoricalFocalCrossentropy(from_logits=True)
+        self.bfce = tf.keras.losses.BinaryFocalCrossentropy(from_logits=True, label_smoothing=setting.soft_label_ratio)
+        self.cfce = tf.keras.losses.CategoricalFocalCrossentropy(from_logits=True, label_smoothing=setting.soft_label_ratio)
 
         self.ae_train_metric = tf.keras.metrics.MeanSquaredError()
         self.ed_train_metric = tf.keras.metrics.BinaryAccuracy(threshold=0)
@@ -65,14 +65,12 @@ class model_worker():
         loss += self.bfce(tf.ones_like(dd_fake), dd_fake) * setting.discriminator_weight
         return loss
     
-    def ed_loss(self, ed_true, ed_fake):
-        loss = self.bfce(tf.ones_like(ed_true), ed_true)
-        loss += self.bfce(tf.zeros_like(ed_fake), ed_fake)
+    def ed_loss(self, target, output):
+        loss = self.bfce(target, output)
         return loss
     
-    def dd_loss(self, dd_true, dd_fake):
-        loss = self.bfce(tf.ones_like(dd_true), dd_true)
-        loss += self.bfce(tf.zeros_like(dd_fake), dd_fake)
+    def dd_loss(self, target, output):
+        loss = self.bfce(target, output)
         return loss
     
     def c_loss(self, one_hot, c_pred):
@@ -82,32 +80,48 @@ class model_worker():
     def train_step(self, batch):
         image, condition, one_hot = batch["data"], batch["condition_label"], batch["one_hot_coding_label"]
         for _ in range(self.ed_iteration):
-            with tf.GradientTape() as ed_tape:
-                features = self.e(image)
+            with tf.GradientTape() as ed_tape_true:
                 noise = tf.random.normal([setting.batch_size, setting.feature_size])
                 
                 ed_true = self.ed(noise, training=True)
+
+                ed_loss = self.ed_loss(tf.ones_like(ed_true), ed_true)
+
+            ed_gradient = ed_tape_true.gradient(ed_loss, self.ed.trainable_variables)
+            self.ed_opt.apply_gradients(zip(ed_gradient, self.ed.trainable_variables))
+
+            with tf.GradientTape() as ed_tape_fake:
+                features = self.e(image)
+                
                 ed_fake = self.ed(features, training=True)
 
-                ed_loss = self.ed_loss(ed_true, ed_fake)
+                ed_loss = self.ed_loss(tf.zeros_like(ed_fake), ed_fake)
 
-            ed_gradient = ed_tape.gradient(ed_loss, self.ed.trainable_variables)
+            ed_gradient = ed_tape_fake.gradient(ed_loss, self.ed.trainable_variables)
             self.ed_opt.apply_gradients(zip(ed_gradient, self.ed.trainable_variables))
 
             self.ed_train_metric.update_state(tf.ones_like(ed_true), ed_true)
             self.ed_train_metric.update_state(tf.zeros_like(ed_fake), ed_fake)
 
         for _ in range(self.dd_iteration):
-            with tf.GradientTape() as dd_tape:
+            with tf.GradientTape() as dd_tape_true:
+
+                dd_true = self.dd(image, training=True)
+
+                dd_loss = self.dd_loss(tf.ones_like(dd_true), dd_true)
+
+            dd_gradient = dd_tape_true.gradient(dd_loss, self.dd.trainable_variables)
+            self.dd_opt.apply_gradients(zip(dd_gradient, self.dd.trainable_variables))
+
+            with tf.GradientTape() as dd_tape_fake:
                 features = self.e(image)
                 decoded_image = self.d(tf.concat([features, tf.cast(condition, tf.float32)], 1))
 
-                dd_true = self.dd(image, training=True)
                 dd_fake = self.dd(decoded_image, training=True)
 
-                dd_loss = self.dd_loss(dd_true, dd_fake)
+                dd_loss = self.dd_loss(tf.zeros_like(dd_fake), dd_fake)
 
-            dd_gradient = dd_tape.gradient(dd_loss, self.dd.trainable_variables)
+            dd_gradient = dd_tape_fake.gradient(dd_loss, self.dd.trainable_variables)
             self.dd_opt.apply_gradients(zip(dd_gradient, self.dd.trainable_variables))
 
             self.dd_train_metric.update_state(tf.ones_like(dd_true), dd_true)

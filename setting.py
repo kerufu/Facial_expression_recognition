@@ -32,3 +32,5 @@ dropout_ratio = 0.0
 
 sample_image = "sample_image.jpg"
 sample_decoded_image = "sample_decoded_image.jpg"
+
+soft_label_ratio = 0.3

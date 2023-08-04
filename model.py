@@ -7,10 +7,9 @@ class custom_conv2d(tf.keras.layers.Layer):
     def __init__(self, num_channel, kernel_size):
         super(custom_conv2d, self).__init__()
         self.model = [
-            tf.keras.layers.Conv2D(num_channel, kernel_size, padding='same'),
+            tf.keras.layers.Conv2D(num_channel, kernel_size, strides=2, padding='same'),
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Activation('leaky_relu'),
-            tf.keras.layers.MaxPooling2D(),
             tf.keras.layers.Dropout(setting.dropout_ratio)
         ]
 

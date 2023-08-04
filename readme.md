@@ -28,4 +28,10 @@ To set up GPU on windows docker:
 3. enable wsl2 and ubuntu in docker
 4. follow the instruction: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#install-guide
 
-More reference: https://medium.com/@KNuggies/tensorflow-with-gpu-on-windows-with-wsl-and-docker-75fb2edd571f
+More reference:
+
+https://medium.com/@KNuggies/tensorflow-with-gpu-on-windows-with-wsl-and-docker-75fb2edd571f
+
+https://github.com/soumith/ganhacks
+
+https://machinelearningmastery.com/practical-guide-to-gan-failure-modes/
