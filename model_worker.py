@@ -32,11 +32,11 @@ class model_worker():
         except:
             print("model weight not found")
 
-        self.e_opt = tf.keras.optimizers.Adam(learning_rate=0.0001, clipnorm=1.0)
-        self.d_opt = tf.keras.optimizers.Adam(learning_rate=0.0001, clipnorm=1.0)
-        self.ed_opt = tf.keras.optimizers.Adam(learning_rate=0.0001, clipnorm=1.0)
-        self.dd_opt = tf.keras.optimizers.Adam(learning_rate=0.0001, clipnorm=1.0)
-        self.c_opt = tf.keras.optimizers.Adam(learning_rate=0.0001, clipnorm=1.0)
+        self.e_opt = tf.keras.optimizers.Adam(clipnorm=1.0)
+        self.d_opt = tf.keras.optimizers.Adam(clipnorm=1.0)
+        self.ed_opt = tf.keras.optimizers.Adam(clipnorm=1.0)
+        self.dd_opt = tf.keras.optimizers.Adam(clipnorm=1.0)
+        self.c_opt = tf.keras.optimizers.Adam(clipnorm=1.0)
 
         self.mse = tf.keras.losses.MeanSquaredError()
         self.bfce = tf.keras.losses.BinaryFocalCrossentropy(from_logits=True)
@@ -51,7 +51,7 @@ class model_worker():
         self.ed_test_metric = tf.keras.metrics.BinaryAccuracy(threshold=0)
         self.dd_test_metric = tf.keras.metrics.BinaryAccuracy(threshold=0)
         self.c_test_metric = tf.keras.metrics.CategoricalAccuracy()
-
+   
     def e_loss(self, input_image, output_image, ed_fake, dd_fake, one_hot, c_pred):
         loss = self.mse(input_image, output_image)
         loss += self.bfce(tf.ones_like(ed_fake), ed_fake) * setting.discriminator_weight
