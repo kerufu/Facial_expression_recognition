@@ -11,12 +11,12 @@ class custom_conv2d(tf.keras.layers.Layer):
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Activation('selu'),
             tf.keras.layers.MaxPooling2D(),
-            tf.keras.layers.Dropout(0.1)
+            tf.keras.layers.Dropout(setting.dropout_ratio)
         ]
 
     def call(self, x, training):
         for layer in self.model:
-            if "dropout" in layer.name or "dropout" in layer.name:
+            if "dropout" in layer.name or "batch_normalization" in layer.name:
                 x = layer(x, training)
             else:
                 x = layer(x)
@@ -30,12 +30,12 @@ class custom_conv2dtp(tf.keras.layers.Layer):
             tf.keras.layers.Conv2DTranspose(num_channel, kernel_size, strides=2, padding='same', kernel_regularizer=tf.keras.regularizers.L1L2()),
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Activation('selu'),
-            tf.keras.layers.Dropout(0.1)
+            tf.keras.layers.Dropout(setting.dropout_ratio)
         ]
 
     def call(self, x, training):
         for layer in self.model:
-            if "dropout" in layer.name:
+            if "dropout" in layer.name or "batch_normalization" in layer.name:
                 x = layer(x, training)
             else:
                 x = layer(x)
@@ -49,12 +49,12 @@ class custom_dense(tf.keras.layers.Layer):
             tf.keras.layers.Dense(output_size, kernel_regularizer=tf.keras.regularizers.L1L2()),
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Activation('selu'),
-            tf.keras.layers.Dropout(0.1)
+            tf.keras.layers.Dropout(setting.dropout_ratio)
         ]
 
     def call(self, x, training):
         for layer in self.model:
-            if "dropout" in layer.name:
+            if "dropout" in layer.name or "batch_normalization" in layer.name:
                 x = layer(x, training)
             else:
                 x = layer(x)

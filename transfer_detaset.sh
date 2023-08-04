@@ -1,1 +1,1 @@
-docker cp ./dataset fer:/fer/dataset
+docker cp ./dataset fer:/fer
