@@ -84,6 +84,7 @@ class decoder(tf.keras.Model):
     def __init__(self):
         super(decoder, self).__init__()
         self.model = [
+            custom_dense(256),
             custom_dense(setting.image_size*setting.image_size*4),  
             tf.keras.layers.Reshape((setting.image_size//8, setting.image_size//8, 256)),
             custom_conv2dtp(128, 2),
@@ -119,7 +120,7 @@ class decoder_discriminator(tf.keras.Model):
     def __init__(self):
         super(decoder_discriminator, self).__init__()
         self.model = [
-            custom_conv2d(64, 3),
+            custom_conv2d(32, 3),
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(1)
         ]
