@@ -9,7 +9,7 @@ class custom_conv2d(tf.keras.layers.Layer):
         self.model = [
             tf.keras.layers.Conv2D(num_channel, kernel_size, padding='same'),
             tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Activation('selu'),
+            tf.keras.layers.Activation('leaky_relu'),
             tf.keras.layers.MaxPooling2D(),
             tf.keras.layers.Dropout(setting.dropout_ratio)
         ]
@@ -29,7 +29,7 @@ class custom_conv2dtp(tf.keras.layers.Layer):
         self.model = [
             tf.keras.layers.Conv2DTranspose(num_channel, kernel_size, strides=2, padding='same'),
             tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Activation('selu'),
+            tf.keras.layers.Activation('leaky_relu'),
             tf.keras.layers.Dropout(setting.dropout_ratio)
         ]
 
@@ -48,7 +48,7 @@ class custom_dense(tf.keras.layers.Layer):
         self.model = [
             tf.keras.layers.Dense(output_size),
             tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Activation('selu'),
+            tf.keras.layers.Activation('leaky_relu'),
             tf.keras.layers.Dropout(setting.dropout_ratio)
         ]
 
@@ -68,7 +68,7 @@ class encoder(tf.keras.Model):
             custom_conv2d(128, 3),
             custom_conv2d(256, 2),
             tf.keras.layers.Flatten(),
-            custom_dense(256),
+            custom_dense(1024),
             tf.keras.layers.Dense(setting.feature_size, activity_regularizer=tf.keras.regularizers.L1L2())
         ]
 
@@ -84,7 +84,7 @@ class decoder(tf.keras.Model):
     def __init__(self):
         super(decoder, self).__init__()
         self.model = [
-            custom_dense(256),
+            custom_dense(1024),
             custom_dense(setting.image_size*setting.image_size*4),  
             tf.keras.layers.Reshape((setting.image_size//8, setting.image_size//8, 256)),
             custom_conv2dtp(128, 2),
@@ -104,7 +104,7 @@ class encoder_discriminator(tf.keras.Model):
     def __init__(self):
         super(encoder_discriminator, self).__init__()
         self.model = [
-            custom_dense(32),
+            custom_dense(256),
             tf.keras.layers.Dense(1)
         ]
 
@@ -137,7 +137,7 @@ class classifier(tf.keras.Model):
     def __init__(self):
         super(classifier, self).__init__()
         self.model = [
-            custom_dense(32),
+            custom_dense(256),
             tf.keras.layers.Dense(setting.num_classes)
         ]
 
