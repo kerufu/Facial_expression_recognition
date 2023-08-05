@@ -35,5 +35,5 @@ sample_decoded_image = "sample_decoded_image.jpg"
 
 soft_label_ratio = 0.1
 
-learning_rate = 0.001
+learning_rate = 0.0001
 clipnorm = 1.0
