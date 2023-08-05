@@ -1,4 +1,3 @@
-@@ -0,0 +1,112 @@
 # size of the image: 48*48 pixels
 pic_size = 48
 
