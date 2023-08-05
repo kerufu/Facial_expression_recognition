@@ -10,7 +10,7 @@ from model import encoder, decoder, encoder_discriminator, decoder_discriminator
 
 class model_worker():
 
-    def __init__(self, ae_iteration=1, ed_iteration=1, dd_iteration=1, c_iteration=1):
+    def __init__(self, ae_iteration=5, ed_iteration=5, dd_iteration=5, c_iteration=1):
         self.ae_iteration = ae_iteration
         self.ed_iteration = ed_iteration
         self.dd_iteration = dd_iteration
@@ -66,12 +66,10 @@ class model_worker():
         return loss
     
     def ed_loss(self, target, output):
-        loss = self.bfce(target, output)
-        return loss
+        return self.bfce(target, output)
     
     def dd_loss(self, target, output):
-        loss = self.bfce(target, output)
-        return loss
+        return self.bfce(target, output)
     
     def c_loss(self, one_hot, c_pred):
         return self.cfce(one_hot, c_pred)
@@ -85,9 +83,9 @@ class model_worker():
                 
                 ed_true = self.ed(noise, training=True)
 
-                ed_loss = self.ed_loss(tf.ones_like(ed_true), ed_true)
+                ed_loss_true = self.ed_loss(tf.ones_like(ed_true), ed_true)
 
-            ed_gradient = ed_tape_true.gradient(ed_loss, self.ed.trainable_variables)
+            ed_gradient = ed_tape_true.gradient(ed_loss_true, self.ed.trainable_variables)
             self.ed_opt.apply_gradients(zip(ed_gradient, self.ed.trainable_variables))
 
             with tf.GradientTape() as ed_tape_fake:
@@ -95,9 +93,9 @@ class model_worker():
                 
                 ed_fake = self.ed(features, training=True)
 
-                ed_loss = self.ed_loss(tf.zeros_like(ed_fake), ed_fake)
+                ed_loss_fake = self.ed_loss(tf.zeros_like(ed_fake), ed_fake)
 
-            ed_gradient = ed_tape_fake.gradient(ed_loss, self.ed.trainable_variables)
+            ed_gradient = ed_tape_fake.gradient(ed_loss_fake, self.ed.trainable_variables)
             self.ed_opt.apply_gradients(zip(ed_gradient, self.ed.trainable_variables))
 
             self.ed_train_metric.update_state(tf.ones_like(ed_true), ed_true)
@@ -108,9 +106,9 @@ class model_worker():
 
                 dd_true = self.dd(image, training=True)
 
-                dd_loss = self.dd_loss(tf.ones_like(dd_true), dd_true)
+                dd_loss_true = self.dd_loss(tf.ones_like(dd_true), dd_true)
 
-            dd_gradient = dd_tape_true.gradient(dd_loss, self.dd.trainable_variables)
+            dd_gradient = dd_tape_true.gradient(dd_loss_true, self.dd.trainable_variables)
             self.dd_opt.apply_gradients(zip(dd_gradient, self.dd.trainable_variables))
 
             with tf.GradientTape() as dd_tape_fake:
@@ -119,9 +117,9 @@ class model_worker():
 
                 dd_fake = self.dd(decoded_image, training=True)
 
-                dd_loss = self.dd_loss(tf.zeros_like(dd_fake), dd_fake)
+                dd_loss_fake = self.dd_loss(tf.zeros_like(dd_fake), dd_fake)
 
-            dd_gradient = dd_tape_fake.gradient(dd_loss, self.dd.trainable_variables)
+            dd_gradient = dd_tape_fake.gradient(dd_loss_fake, self.dd.trainable_variables)
             self.dd_opt.apply_gradients(zip(dd_gradient, self.dd.trainable_variables))
 
             self.dd_train_metric.update_state(tf.ones_like(dd_true), dd_true)

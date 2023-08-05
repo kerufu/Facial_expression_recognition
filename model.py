@@ -119,7 +119,7 @@ class decoder_discriminator(tf.keras.Model):
     def __init__(self):
         super(decoder_discriminator, self).__init__()
         self.model = [
-            custom_conv2d(32, 3),
+            custom_conv2d(32, 2),
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(1)
         ]

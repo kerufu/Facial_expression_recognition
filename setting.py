@@ -26,7 +26,7 @@ classifier_path = "saved_model/classifier"
 
 discriminator_weight = 0.05
 
-batch_size = 128
+batch_size = 64
 
 dropout_ratio = 0.0
 
@@ -35,5 +35,5 @@ sample_decoded_image = "sample_decoded_image.jpg"
 
 soft_label_ratio = 0.1
 
-learning_rate = 0.0001
-clipnorm = None
+learning_rate = 0.001
+clipnorm = 5.0
