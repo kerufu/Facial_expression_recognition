@@ -10,7 +10,7 @@ from model import encoder, decoder, encoder_discriminator, decoder_discriminator
 
 class model_worker():
 
-    def __init__(self, ae_iteration=5, ed_iteration=5, dd_iteration=5, c_iteration=1):
+    def __init__(self, ae_iteration=1, ed_iteration=1, dd_iteration=1, c_iteration=1):
         self.ae_iteration = ae_iteration
         self.ed_iteration = ed_iteration
         self.dd_iteration = dd_iteration
@@ -52,7 +52,7 @@ class model_worker():
         self.dd_test_metric = tf.keras.metrics.BinaryAccuracy(threshold=0)
         self.c_test_metric = tf.keras.metrics.CategoricalAccuracy()
    
-    def e_loss(self, input_image, output_image, ed_fake, dd_fake, one_hot, c_pred):
+    def get_e_loss(self, input_image, output_image, ed_fake, dd_fake, one_hot, c_pred):
         loss = self.mse(input_image, output_image)
         loss += self.bfce(tf.ones_like(ed_fake), ed_fake) * setting.discriminator_weight
         loss += self.bfce(tf.ones_like(dd_fake), dd_fake) * setting.discriminator_weight
@@ -60,18 +60,18 @@ class model_worker():
         loss += tf.add_n(self.e.losses)
         return loss
     
-    def d_loss(self, input_image, output_image, dd_fake):
+    def get_d_loss(self, input_image, output_image, dd_fake):
         loss = self.mse(input_image, output_image)
         loss += self.bfce(tf.ones_like(dd_fake), dd_fake) * setting.discriminator_weight
         return loss
     
-    def ed_loss(self, target, output):
+    def get_ed_loss(self, target, output):
         return self.bfce(target, output)
     
-    def dd_loss(self, target, output):
+    def get_dd_loss(self, target, output):
         return self.bfce(target, output)
     
-    def c_loss(self, one_hot, c_pred):
+    def get_c_loss(self, one_hot, c_pred):
         return self.cfce(one_hot, c_pred)
     
     @tf.function
@@ -83,7 +83,7 @@ class model_worker():
                 
                 ed_true = self.ed(noise, training=True)
 
-                ed_loss_true = self.ed_loss(tf.ones_like(ed_true), ed_true)
+                ed_loss_true = self.get_ed_loss(tf.ones_like(ed_true), ed_true)
 
             ed_gradient = ed_tape_true.gradient(ed_loss_true, self.ed.trainable_variables)
             self.ed_opt.apply_gradients(zip(ed_gradient, self.ed.trainable_variables))
@@ -93,7 +93,7 @@ class model_worker():
                 
                 ed_fake = self.ed(features, training=True)
 
-                ed_loss_fake = self.ed_loss(tf.zeros_like(ed_fake), ed_fake)
+                ed_loss_fake = self.get_ed_loss(tf.zeros_like(ed_fake), ed_fake)
 
             ed_gradient = ed_tape_fake.gradient(ed_loss_fake, self.ed.trainable_variables)
             self.ed_opt.apply_gradients(zip(ed_gradient, self.ed.trainable_variables))
@@ -103,10 +103,9 @@ class model_worker():
 
         for _ in range(self.dd_iteration):
             with tf.GradientTape() as dd_tape_true:
-
                 dd_true = self.dd(image, training=True)
 
-                dd_loss_true = self.dd_loss(tf.ones_like(dd_true), dd_true)
+                dd_loss_true = self.get_dd_loss(tf.ones_like(dd_true), dd_true)
 
             dd_gradient = dd_tape_true.gradient(dd_loss_true, self.dd.trainable_variables)
             self.dd_opt.apply_gradients(zip(dd_gradient, self.dd.trainable_variables))
@@ -117,7 +116,7 @@ class model_worker():
 
                 dd_fake = self.dd(decoded_image, training=True)
 
-                dd_loss_fake = self.dd_loss(tf.zeros_like(dd_fake), dd_fake)
+                dd_loss_fake = self.get_dd_loss(tf.zeros_like(dd_fake), dd_fake)
 
             dd_gradient = dd_tape_fake.gradient(dd_loss_fake, self.dd.trainable_variables)
             self.dd_opt.apply_gradients(zip(dd_gradient, self.dd.trainable_variables))
@@ -134,8 +133,8 @@ class model_worker():
                     dd_fake = self.dd(decoded_image)
                     c_pred = self.c(features)
 
-                    e_loss = self.e_loss(image, decoded_image, ed_fake, dd_fake, one_hot, c_pred)
-                    d_loss = self.d_loss(image, decoded_image, dd_fake)
+                    e_loss = self.get_e_loss(image, decoded_image, ed_fake, dd_fake, one_hot, c_pred)
+                    d_loss = self.get_d_loss(image, decoded_image, dd_fake)
 
             e_gradient = e_tape.gradient(e_loss, self.e.trainable_variables)
             self.e_opt.apply_gradients(zip(e_gradient, self.e.trainable_variables))
@@ -149,7 +148,7 @@ class model_worker():
                 features = self.e(image)
                 c_pred = self.c(features, training=True)
 
-                c_loss = self.c_loss(one_hot, c_pred)
+                c_loss = self.get_c_loss(one_hot, c_pred)
             
             c_gradient = c_tape.gradient(c_loss, self.c.trainable_variables)
             self.c_opt.apply_gradients(zip(c_gradient, self.c.trainable_variables))
@@ -198,11 +197,15 @@ class model_worker():
                 image = batch["data"][0, :]
                 decoded_image = self.test_step(batch)[0, :]
 
-            self.e.save(setting.encoder_path)
-            self.d.save(setting.decoder_path)
-            self.ed.save(setting.encoder_discriminator_path)
-            self.dd.save(setting.decoder_discriminator_path)
-            self.c.save(setting.classifier_path)
+            if self.ae_iteration:
+                self.e.save(setting.encoder_path)
+                self.d.save(setting.decoder_path)
+            if self.ed_iteration:
+                self.ed.save(setting.encoder_discriminator_path)
+            if self.dd_iteration:
+                self.dd.save(setting.decoder_discriminator_path)
+            if self.c_iteration:
+                self.c.save(setting.classifier_path)
 
             cv2.imwrite(setting.sample_image, np.array((image+1)*127.5))
             cv2.imwrite(setting.sample_decoded_image, np.array((decoded_image+1)*127.5))
