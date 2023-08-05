@@ -10,11 +10,7 @@ from keras.preprocessing.image import ImageDataGenerator
 batch_size = 128
 
 
-train_datagen = ImageDataGenerator(rescale = 1.0/255.0,
-                                  width_shift_range = 0.1,
-                                   height_shift_range = 0.1,
-                                   rotation_range = 20,
-                                   horizontal_flip = True)
+train_datagen = ImageDataGenerator(rescale = 1.0/255.0)
 
 validation_datagen = ImageDataGenerator(rescale= 1.0/255)
 
@@ -86,7 +82,7 @@ model.add(Dense(nb_classes, activation='softmax'))
 
 print(model.summary())
 
-opt = Adam(lr=0.0001)
+opt = Adam(learning_rate=0.0001)
 model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 
 
