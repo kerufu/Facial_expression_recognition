@@ -44,25 +44,25 @@ nb_classes = 7
 model = Sequential()
 
 # 1 - Convolution
-model.add(Conv2D(64,(3,3), padding='same', stride=2, input_shape=(48, 48,1)))
+model.add(Conv2D(64,(3,3), padding='same', strides=2, input_shape=(48, 48,1)))
 model.add(BatchNormalization())
 model.add(Activation('leaky_relu'))
 model.add(Dropout(0.25))
 
 # 2nd Convolution layer
-model.add(Conv2D(128,(5,5), padding='same', stride=2))
+model.add(Conv2D(128,(5,5), padding='same', strides=2))
 model.add(BatchNormalization())
 model.add(Activation('leaky_relu'))
 model.add(Dropout(0.25))
 
 # 3rd Convolution layer
-model.add(Conv2D(512,(3,3), padding='same', stride=2))
+model.add(Conv2D(512,(3,3), padding='same', strides=2))
 model.add(BatchNormalization())
 model.add(Activation('leaky_relu'))
 model.add(Dropout(0.25))
 
 # 4th Convolution layer
-model.add(Conv2D(512,(3,3), padding='same', stride=2))
+model.add(Conv2D(512,(3,3), padding='same', strides=2))
 model.add(BatchNormalization())
 model.add(Activation('leaky_relu'))
 model.add(Dropout(0.25))
