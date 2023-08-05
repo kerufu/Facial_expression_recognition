@@ -12,6 +12,7 @@ from keras.models import Model, Sequential
 from keras.optimizers import Adam
 
 opt = tf.keras.optimizers.Adam(learning_rate=0.0001)
+nb_classes = 7
 # Initialising the CNN
 model = Sequential()
 
