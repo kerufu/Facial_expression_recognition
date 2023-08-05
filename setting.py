@@ -24,7 +24,7 @@ encoder_discriminator_path = "saved_model/encoder_discriminator"
 decoder_discriminator_path = "saved_model/decoder_discriminator"
 classifier_path = "saved_model/classifier"
 
-discriminator_weight = 0.3
+discriminator_weight = 1.0
 
 batch_size = 64
 
@@ -33,7 +33,7 @@ dropout_ratio = 0.0
 sample_image = "sample_image.jpg"
 sample_decoded_image = "sample_decoded_image.jpg"
 
-soft_label_ratio = 0.1
+soft_label_ratio = 0
 
 learning_rate = 0.0001
 clipnorm = 1.0
