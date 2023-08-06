@@ -8,6 +8,7 @@ from dataset_worker import dataset_worker
 import os
 os.chdir("..")
 
+
 e = encoder()
 c = classifier()
 
@@ -22,12 +23,10 @@ test_metric = tf.keras.metrics.CategoricalAccuracy()
 @tf.function
 def train_step(batch):
     image, one_hot = batch["data"], batch["one_hot_coding_label"]
-    print(image.shape, one_hot.shape)
     with tf.GradientTape() as tape_e:
         with tf.GradientTape() as tape_c:
             features = e(image, training=True)
             pred = c(features, training=True)
-
             loss_e = cfce(one_hot, pred)
 
             loss_c = cfce(one_hot, pred)
