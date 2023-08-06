@@ -68,6 +68,7 @@ class encoder(tf.keras.Model):
             custom_conv2d(256, 3),
             custom_conv2d(512, 3),
             tf.keras.layers.Flatten(),
+            custom_dense(256),
             custom_dense(setting.feature_size)
         ]
 
@@ -83,6 +84,7 @@ class decoder(tf.keras.Model):
     def __init__(self):
         super(decoder, self).__init__()
         self.model = [
+            custom_dense(256),
             custom_dense(setting.image_size*setting.image_size*2),  
             tf.keras.layers.Reshape((setting.image_size//16, setting.image_size//16, 512)),
             custom_conv2dtp(256, 3),
