@@ -177,8 +177,7 @@ class model_worker():
         return decoded_image
     
     def train(self, epoch, train_dataset, validation_dataset):
-        train_dataset = train_dataset.shuffle(setting.batch_size, reshuffle_each_iteration=True)
-        validation_dataset = validation_dataset.shuffle(setting.batch_size, reshuffle_each_iteration=True)
+        
         for epoch_num in range(epoch):
             start = time.time()
             self.ae_train_metric.reset_state()
@@ -190,9 +189,13 @@ class model_worker():
             self.ed_test_metric.reset_state()
             self.dd_test_metric.reset_state()
             self.c_test_metric.reset_state()
-            for batch in train_dataset:
+
+            train_dataset = train_dataset.shuffle(train_dataset.cardinality())
+            validation_dataset = validation_dataset.shuffle(validation_dataset.cardinality())
+
+            for batch in train_dataset.batch(setting.batch_size):
                 self.train_step(batch)
-            for batch in validation_dataset:
+            for batch in validation_dataset.batch(setting.batch_size):
                 image = batch["data"][0, :]
                 decoded_image = self.test_step(batch)[0, :]
 

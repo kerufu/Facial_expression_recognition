@@ -52,10 +52,6 @@ class dataset_worker():
             "one_hot_coding_label": one_hot_coding_label
         })
 
-        dataset = dataset.batch(setting.batch_size)
-        # bug of tensorflow dataset, cannot save reshuffle_each_iteration
-        # dataset = dataset.shuffle(setting.batch_size, reshuffle_each_iteration=True) 
-
         dataset.save(processed_dataset_path)
 
         return dataset
