@@ -51,11 +51,15 @@ model = tf.keras.Sequential([
     custom_conv2d(512, 3),
     tf.keras.layers.Flatten(),
     tf.keras.layers.Dense(setting.feature_size, activity_regularizer=tf.keras.regularizers.L1L2()),
+    # Dense(512),
+    # BatchNormalization(),
+    # Activation('leaky_relu'),
+    # Dropout(setting.dropout_ratio),
     tf.keras.layers.Dense(setting.num_classes)
 ])
 
-opt = Adam(learning_rate=0.0001)
-model.compile(optimizer=opt, loss='categorical_crossentropy',
+opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.clipnorm)
+model.compile(optimizer=opt, loss=tf.keras.losses.CategoricalFocalCrossentropy(from_logits=True, label_smoothing=setting.soft_label_ratio),
               metrics=['categorical_accuracy'])
 
 # number of epochs to train the NN
