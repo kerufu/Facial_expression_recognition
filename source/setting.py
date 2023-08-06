@@ -28,7 +28,7 @@ discriminator_weight = 1
 
 batch_size = 128
 
-dropout_ratio = 0.25
+dropout_ratio = 0
 
 weight_decay = None
 

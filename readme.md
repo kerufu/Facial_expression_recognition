@@ -35,3 +35,7 @@ https://medium.com/@KNuggies/tensorflow-with-gpu-on-windows-with-wsl-and-docker-
 https://github.com/soumith/ganhacks
 
 https://machinelearningmastery.com/practical-guide-to-gan-failure-modes/
+
+Hints:
+1. Use tf.data.Dataset casefully
+2. "selu" ≈ "BatchNormalization" + "leaky_relu", don't use "selu" + "BatchNormalization"
