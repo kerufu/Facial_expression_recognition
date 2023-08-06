@@ -27,6 +27,8 @@ def train_step(batch):
             features = e(image, training=True)
             pred = c(features, training=True)
 
+            print(one_hot.shape, pred.shape)
+
             loss_e = cfce(one_hot, pred)
 
             loss_c = cfce(one_hot, pred)
