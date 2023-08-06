@@ -191,9 +191,6 @@ class model_worker():
             self.dd_test_metric.reset_state()
             self.c_test_metric.reset_state()
 
-            train_dataset = train_dataset.shuffle(train_dataset.cardinality())
-            validation_dataset = validation_dataset.shuffle(validation_dataset.cardinality())
-
             for batch in train_dataset.batch(setting.batch_size):
                 self.train_step(batch)
             for batch in validation_dataset.batch(setting.batch_size):
