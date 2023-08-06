@@ -33,7 +33,7 @@ dropout_ratio = 0.25
 sample_image = "sample_image.jpg"
 sample_decoded_image = "sample_decoded_image.jpg"
 
-soft_label_ratio = 0.25
+soft_label_ratio = 0
 
 learning_rate = 0.0001
-clipnorm = 1.0
+clipnorm = None

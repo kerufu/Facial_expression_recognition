@@ -20,15 +20,22 @@ test_metric = tf.keras.metrics.CategoricalAccuracy()
 @tf.function
 def train_step(batch):
     image, one_hot = batch["data"], batch["one_hot_coding_label"]
-    with tf.GradientTape(persistent=True) as tape:
+    with tf.GradientTape() as tape1:
         features = e(image, training=True)
         pred = c(features, training=True)
 
         loss = cfce(one_hot, pred)
 
-    gradient_e = tape.gradient(loss, e.trainable_variables)
+    gradient_e = tape1.gradient(loss, e.trainable_variables)
     e_opt.apply_gradients(zip(gradient_e, e.trainable_variables))
-    gradient_c = tape.gradient(loss, c.trainable_variables)
+
+    with tf.GradientTape() as tape2:
+        features = e(image, training=True)
+        pred = c(features, training=True)
+
+        loss = cfce(one_hot, pred)
+
+    gradient_c = tape2.gradient(loss, c.trainable_variables)
     c_opt.apply_gradients(zip(gradient_c, c.trainable_variables))
 
     train_metric.update_state(one_hot, pred)
@@ -56,7 +63,6 @@ def train(epoch):
         for batch in train_dataset:
             train_step(batch)
         for batch in validation_dataset:
-            batch["data"]
             test_step(batch)
 
         e.save(setting.encoder_path)
