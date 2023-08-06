@@ -26,7 +26,7 @@ classifier_path = "saved_model/classifier"
 
 discriminator_weight = 0
 
-batch_size = 50
+batch_size = 128
 
 dropout_ratio = 0.25
 

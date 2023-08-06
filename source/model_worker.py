@@ -204,7 +204,11 @@ class model_worker():
     
     def train(self, epoch, train_dataset, validation_dataset):
         train_dataset = train_dataset.shuffle(setting.batch_size, reshuffle_each_iteration=True)
+        train_dataset = train_dataset.batch(setting.batch_size)
+
         validation_dataset = validation_dataset.shuffle(setting.batch_size, reshuffle_each_iteration=True)
+        validation_dataset = validation_dataset.batch(setting.batch_size)
+
         for epoch_num in range(epoch):
             start = time.time()
             self.ae_train_metric.reset_state()
