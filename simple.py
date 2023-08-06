@@ -17,7 +17,7 @@ model = tf.keras.Sequential([
     custom_dense(512),
             tf.keras.layers.Dense(setting.num_classes)
 ])
-model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
+model.compile(optimizer=opt, loss=tf.keras.losses.CategoricalFocalCrossentropy(from_logits=True, label_smoothing=setting.soft_label_ratio), metrics=['categorical_accuracy'])
 
 epochs = 50
 
