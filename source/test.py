@@ -45,10 +45,10 @@ validation_generator = validation_datagen.flow_from_directory(base_path + "valid
 nb_classes = 7
 
 model = tf.keras.Sequential([
+    custom_conv2d(32, 3),
     custom_conv2d(64, 3),
-    custom_conv2d(128, 5),
-    custom_conv2d(512, 3),
-    custom_conv2d(512, 3),
+    custom_conv2d(128, 2),
+    custom_conv2d(256, 2),
     tf.keras.layers.Flatten(),
     tf.keras.layers.Dense(setting.feature_size, activity_regularizer=tf.keras.regularizers.L1L2()),
     # Dense(512),

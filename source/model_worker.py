@@ -32,11 +32,11 @@ class model_worker():
         except:
             print("model weight not found")
 
-        self.e_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.clipnorm)
-        self.d_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.clipnorm)
-        self.ed_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.clipnorm)
-        self.dd_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.clipnorm)
-        self.c_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.clipnorm)
+        self.e_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.clipnorm, weight_decay=setting.weight_decay)
+        self.d_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.clipnorm, weight_decay=setting.weight_decay)
+        self.ed_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.clipnorm, weight_decay=setting.weight_decay)
+        self.dd_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.clipnorm, weight_decay=setting.weight_decay)
+        self.c_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.clipnorm, weight_decay=setting.weight_decay)
 
         self.mse = tf.keras.losses.MeanSquaredError()
         self.bfce = tf.keras.losses.BinaryFocalCrossentropy(from_logits=True, label_smoothing=setting.soft_label_ratio)
@@ -57,7 +57,6 @@ class model_worker():
         loss += self.bfce(tf.ones_like(ed_fake), ed_fake) * setting.discriminator_weight
         loss += self.bfce(tf.ones_like(dd_fake), dd_fake) * setting.discriminator_weight
         loss += self.cfce(one_hot, c_pred)
-        # loss += tf.add_n(self.e.losses)
         return loss
     
     def get_d_loss(self, input_image, output_image, dd_fake):

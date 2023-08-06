@@ -68,7 +68,8 @@ class encoder(tf.keras.Model):
             custom_conv2d(256, 3),
             custom_conv2d(512, 3),
             tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(setting.feature_size, activity_regularizer=tf.keras.regularizers.L1L2())
+            # tf.keras.layers.Dense(setting.feature_size, activity_regularizer=tf.keras.regularizers.L1L2())
+            custom_dense(setting.feature_size)
         ]
 
     def call(self, x, training=False):
