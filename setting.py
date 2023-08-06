@@ -28,7 +28,7 @@ discriminator_weight = 1.0
 
 batch_size = 64
 
-dropout_ratio = 0.0
+dropout_ratio = 0.25
 
 sample_image = "sample_image.jpg"
 sample_decoded_image = "sample_decoded_image.jpg"

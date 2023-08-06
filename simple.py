@@ -7,55 +7,16 @@ import tensorflow as tf
 import cv2
 import numpy as np
 
-from keras.layers import Dense, Input, Dropout, GlobalAveragePooling2D, Flatten, Conv2D, BatchNormalization, Activation, MaxPooling2D
-from keras.models import Model, Sequential
-from keras.optimizers import Adam
-
 opt = tf.keras.optimizers.Adam(learning_rate=0.0001)
-nb_classes = 7
-# Initialising the CNN
-model = Sequential()
-
-# 1 - Convolution
-model.add(Conv2D(64,(3,3), padding='same', strides=2, input_shape=(48, 48,1)))
-model.add(BatchNormalization())
-model.add(Activation('leaky_relu'))
-model.add(Dropout(0.25))
-
-# 2nd Convolution layer
-model.add(Conv2D(128,(5,5), padding='same', strides=2))
-model.add(BatchNormalization())
-model.add(Activation('leaky_relu'))
-model.add(Dropout(0.25))
-
-# 3rd Convolution layer
-model.add(Conv2D(512,(3,3), padding='same', strides=2))
-model.add(BatchNormalization())
-model.add(Activation('leaky_relu'))
-model.add(Dropout(0.25))
-
-# 4th Convolution layer
-model.add(Conv2D(512,(3,3), padding='same', strides=2))
-model.add(BatchNormalization())
-model.add(Activation('leaky_relu'))
-model.add(Dropout(0.25))
-
-# Flattening
-model.add(Flatten())
-
-# Fully connected layer 1st layer
-model.add(Dense(256))
-model.add(BatchNormalization())
-model.add(Activation('leaky_relu'))
-model.add(Dropout(0.25))
-
-# Fully connected layer 2nd layer
-model.add(Dense(512))
-model.add(BatchNormalization())
-model.add(Activation('leaky_relu'))
-model.add(Dropout(0.25))
-
-model.add(Dense(nb_classes, activation='softmax'))
+model = tf.keras.Sequential([
+    custom_conv2d(64, 3),
+    custom_conv2d(128, 5),
+    custom_conv2d(512, 3),
+    custom_conv2d(512, 3),
+    tf.keras.layers.Flatten(),
+    custom_dense(512),
+            tf.keras.layers.Dense(setting.num_classes)
+])
 model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 
 epochs = 50
