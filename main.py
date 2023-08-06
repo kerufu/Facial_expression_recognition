@@ -3,6 +3,6 @@ from dataset_worker import dataset_worker
 
 epoch = input("Please enter number of epoch: ")
 print("You entered: " + epoch)
-mw = model_worker(1, 1, 1, 1)
+mw = model_worker(1, 0, 0, 1)
 dw = dataset_worker()
 mw.train(int(epoch), dw.train_dataset, dw.validation_dataset)
