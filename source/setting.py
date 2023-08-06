@@ -24,11 +24,11 @@ encoder_discriminator_path = "saved_model/encoder_discriminator"
 decoder_discriminator_path = "saved_model/decoder_discriminator"
 classifier_path = "saved_model/classifier"
 
-discriminator_weight = 0.2
+discriminator_weight = 1
 
 batch_size = 64
 
-dropout_ratio = 0.1
+dropout_ratio = 0
 
 weight_decay = None
 
