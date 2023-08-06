@@ -7,15 +7,15 @@ import tensorflow as tf
 import cv2
 import numpy as np
 
-opt = tf.keras.optimizers.Adam(learning_rate=0.0001)
+opt = tf.keras.optimizers.Adam(learning_rate=0.0001, clipnorm = 1.0)
 model = tf.keras.Sequential([
     custom_conv2d(64, 3),
     custom_conv2d(128, 5),
     custom_conv2d(512, 3),
     custom_conv2d(512, 3),
     tf.keras.layers.Flatten(),
-    custom_dense(512),
-            tf.keras.layers.Dense(setting.num_classes)
+    tf.keras.layers.Dense(setting.feature_size, activity_regularizer=tf.keras.regularizers.L1L2()),
+    tf.keras.layers.Dense(setting.num_classes)
 ])
 model.compile(optimizer=opt, loss=tf.keras.losses.CategoricalFocalCrossentropy(from_logits=True, label_smoothing=setting.soft_label_ratio), metrics=['categorical_accuracy'])
 
