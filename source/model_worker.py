@@ -97,18 +97,6 @@ class model_worker():
             ed_gradient = ed_tape_fake.gradient(ed_loss_fake, self.ed.trainable_variables)
             self.ed_opt.apply_gradients(zip(ed_gradient, self.ed.trainable_variables))
 
-            # with tf.GradientTape() as ed_tape:
-            #     noise = tf.random.normal([setting.batch_size, setting.feature_size])
-            #     features = self.e(image)
-                
-            #     ed_fake = self.ed(features, training=True)
-            #     ed_true = self.ed(noise, training=True)
-
-            #     ed_loss = self.get_ed_loss(tf.ones_like(ed_true), ed_true) + self.get_ed_loss(tf.zeros_like(ed_fake), ed_fake)
-
-            # ed_gradient = ed_tape.gradient(ed_loss, self.ed.trainable_variables)
-            # self.ed_opt.apply_gradients(zip(ed_gradient, self.ed.trainable_variables))
-
             self.ed_train_metric.update_state(tf.ones_like(ed_true), ed_true)
             self.ed_train_metric.update_state(tf.zeros_like(ed_fake), ed_fake)
 
@@ -131,19 +119,6 @@ class model_worker():
             
             dd_gradient = dd_tape_fake.gradient(dd_loss_fake, self.dd.trainable_variables)
             self.dd_opt.apply_gradients(zip(dd_gradient, self.dd.trainable_variables))
-
-            # with tf.GradientTape() as dd_tape:
-            #     features = self.e(image)
-            #     dd_true = self.dd(image, training=True)
-
-            #     decoded_image = self.d(tf.concat([features, tf.cast(condition, tf.float32)], 1))
-
-            #     dd_fake = self.dd(decoded_image, training=True)
-
-            #     dd_loss = self.get_dd_loss(tf.ones_like(dd_true), dd_true) + self.get_dd_loss(tf.zeros_like(dd_fake), dd_fake)
-
-            # dd_gradient = dd_tape.gradient(dd_loss, self.dd.trainable_variables)
-            # self.dd_opt.apply_gradients(zip(dd_gradient, self.dd.trainable_variables))
 
             self.dd_train_metric.update_state(tf.ones_like(dd_true), dd_true)
             self.dd_train_metric.update_state(tf.zeros_like(dd_fake), dd_fake)
