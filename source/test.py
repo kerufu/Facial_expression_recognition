@@ -5,6 +5,8 @@ import time
 from model import encoder, classifier
 import setting
 from dataset_worker import dataset_worker
+import os
+os.chdir("..")
 
 e = encoder()
 c = classifier()
@@ -12,7 +14,7 @@ c = classifier()
 c_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.clipnorm)
 e_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.clipnorm)
 
-cfce = tf.keras.losses.CategoricalFocalCrossentropy(from_logits=True, label_smoothing=setting.soft_label_ratio)
+cfce = tf.keras.losses.CategoricalCrossentropy(from_logits=True, label_smoothing=setting.soft_label_ratio)
 
 train_metric = tf.keras.metrics.CategoricalAccuracy()
 test_metric = tf.keras.metrics.CategoricalAccuracy()
