@@ -108,12 +108,12 @@ class encoder(tf.keras.Model):
     def __init__(self):
         super(encoder, self).__init__()
         self.model = [
-            custom_conv2d(64, 3),
-            custom_conv2d(128, 5),
-            custom_conv2d(256, 3),
-            custom_conv2d(512, 3),
+            custom_conv2d(64, 3, dropout=True),
+            custom_conv2d(128, 5, dropout=True),
+            custom_conv2d(256, 3, dropout=True),
+            custom_conv2d(512, 3, dropout=True),
             tf.keras.layers.Flatten(),
-            custom_dense(setting.feature_size)
+            custom_dense(setting.feature_size, dropout=True)
         ]
 
     def call(self, x, training=False):
