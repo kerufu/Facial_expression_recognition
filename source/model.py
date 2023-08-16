@@ -128,11 +128,11 @@ class decoder(tf.keras.Model):
     def __init__(self):
         super(decoder, self).__init__()
         self.model = [
-            custom_dense(setting.image_size*setting.image_size*2, dropout=True),  
+            custom_dense(setting.image_size*setting.image_size*2, regularize_kernal=True, dropout=True),  
             tf.keras.layers.Reshape((setting.image_size//16, setting.image_size//16, 512)),
-            custom_conv2dtp(256, 3, dropout=True),
-            custom_conv2dtp(128, 3, dropout=True),
-            custom_conv2dtp(64, 5, dropout=True),
+            custom_conv2dtp(256, 3, regularize_kernal=True, dropout=True),
+            custom_conv2dtp(128, 3, regularize_kernal=True, dropout=True),
+            custom_conv2dtp(64, 5, regularize_kernal=True, dropout=True),
             tf.keras.layers.Conv2DTranspose(1, 3, strides=2, padding='same')
         ]
 
@@ -148,7 +148,7 @@ class encoder_discriminator(tf.keras.Model):
     def __init__(self):
         super(encoder_discriminator, self).__init__()
         self.model = [
-            custom_dense(128, dropout=True),
+            custom_dense(128, regularize_kernal=True, dropout=True),
             tf.keras.layers.Dense(1)
         ]
 
@@ -164,7 +164,7 @@ class decoder_discriminator(tf.keras.Model):
     def __init__(self):
         super(decoder_discriminator, self).__init__()
         self.model = [
-            custom_conv2d(32, 3, dropout=True),
+            custom_conv2d(32, 3, regularize_kernal=True, dropout=True),
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(1)
         ]
