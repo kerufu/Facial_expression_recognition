@@ -28,9 +28,9 @@ class caae_worker():
             self.ed.load_weights(setting.encoder_discriminator_path)
             self.dd.load_weights(setting.decoder_discriminator_path)
             self.c.load_weights(setting.classifier_path)
-            print("model weight loaded")
+            print("caae model weight loaded")
         except:
-            print("model weight not found")
+            print("caae model weight not found")
 
         self.e_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.gradient_clip_norm, weight_decay=setting.weight_decay)
         self.d_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.gradient_clip_norm, weight_decay=setting.weight_decay)
