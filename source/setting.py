@@ -23,6 +23,9 @@ decoder_path = "saved_model/decoder"
 encoder_discriminator_path = "saved_model/encoder_discriminator"
 decoder_discriminator_path = "saved_model/decoder_discriminator"
 classifier_path = "saved_model/classifier"
+wgan_generator_path = "saved_model/wgan_generator"
+wgan_discriminator_path = "saved_model/wgan_discriminator"
+
 
 discriminator_weight = 1
 
@@ -38,4 +41,6 @@ sample_decoded_image = "sample_decoded_image.jpg"
 soft_label_ratio = 0.1
 
 learning_rate = 0.0001
-clipnorm = 10.0
+gradient_clip_norm = 10.0
+
+kernal_clip_value = 0.05

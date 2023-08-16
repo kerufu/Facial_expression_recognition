@@ -8,7 +8,7 @@ from termcolor import cprint
 import setting
 from model import encoder, decoder, encoder_discriminator, decoder_discriminator, classifier
 
-class model_worker():
+class caae_worker():
 
     def __init__(self, ae_iteration=1, ed_iteration=1, dd_iteration=1, c_iteration=1):
         self.ae_iteration = ae_iteration
@@ -32,11 +32,11 @@ class model_worker():
         except:
             print("model weight not found")
 
-        self.e_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.clipnorm, weight_decay=setting.weight_decay)
-        self.d_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.clipnorm, weight_decay=setting.weight_decay)
-        self.ed_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.clipnorm, weight_decay=setting.weight_decay)
-        self.dd_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.clipnorm, weight_decay=setting.weight_decay)
-        self.c_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.clipnorm, weight_decay=setting.weight_decay)
+        self.e_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.gradient_clip_norm, weight_decay=setting.weight_decay)
+        self.d_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.gradient_clip_norm, weight_decay=setting.weight_decay)
+        self.ed_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.gradient_clip_norm, weight_decay=setting.weight_decay)
+        self.dd_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.gradient_clip_norm, weight_decay=setting.weight_decay)
+        self.c_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.gradient_clip_norm, weight_decay=setting.weight_decay)
 
         self.mse = tf.keras.losses.MeanSquaredError()
         self.bfce = tf.keras.losses.BinaryFocalCrossentropy(from_logits=True, label_smoothing=setting.soft_label_ratio)
@@ -62,13 +62,13 @@ class model_worker():
     def get_d_loss(self, input_image, output_image, dd_fake):
         loss = self.mse(input_image, output_image)
         loss += self.bfce(tf.ones_like(dd_fake), dd_fake) * setting.discriminator_weight
-        return loss
+        return loss  + tf.add_n(self.d.losses)
     
     def get_ed_loss(self, target, output):
-        return self.bfce(target, output)
+        return self.bfce(target, output) + tf.add_n(self.ed.losses)
     
     def get_dd_loss(self, target, output):
-        return self.bfce(target, output)
+        return self.bfce(target, output) + tf.add_n(self.dd.losses)
     
     def get_c_loss(self, one_hot, c_pred):
         return self.cfce(one_hot, c_pred)

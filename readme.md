@@ -1,10 +1,8 @@
-Conditional AE with discriminators on feature and reconstruction, as well as a classifier
+Expolore application of GAN in classification, experiment in CAAE and WGAN
 
-Reason for using CAAE to encode image before classifying:
+Reason:
 1. GAN based data augmentation, more precisely train encoder and classifier (the only two module actually running after deployment), achieve better performance with the same model scale
 2. with finer training, kernal regularization and dropout (redundant neurals) can be removed, the scale of model to train increases but scale of  model to inference decreases
-
-Consider reduce the model scale and remove some regulations
 
 the encoded features are in range (-1, 1), the conditional label (expression class) are in one hot coding, e.g. 1, -1 , -1, ...
 
