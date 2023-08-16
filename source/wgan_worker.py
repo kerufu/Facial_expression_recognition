@@ -8,7 +8,7 @@ from model import wgan_generator, wgan_discriminator, classifier, WassersteinLos
 
 class wgan_worker():
 
-    def __init__(self, g_iteration=1, d_iteration=1) -> None:
+    def __init__(self, g_iteration=1, d_iteration=5) -> None:
         self.g_iteration = g_iteration
         self.d_iteration = d_iteration
 
