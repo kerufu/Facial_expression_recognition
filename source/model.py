@@ -18,7 +18,7 @@ class ClipConstraint(tf.keras.constraints.Constraint):
 
 class custom_conv2d(tf.keras.layers.Layer):
 
-    def __init__(self, num_channel, kernel_size, regularize_kernal=False, clip_kernal=False, dropout=False):
+    def __init__(self, num_channel, kernel_size, maxpooling=False, regularize_kernal=False, clip_kernal=False, dropout=False):
         super(custom_conv2d, self).__init__()
 
         kernel_regularizer = None
@@ -29,9 +29,17 @@ class custom_conv2d(tf.keras.layers.Layer):
         if clip_kernal:
             kernel_constraint = ClipConstraint()
 
-        self.model = [
-            tf.keras.layers.Conv2D(num_channel, kernel_size, padding='same', kernel_regularizer=kernel_regularizer, kernel_constraint=kernel_constraint),
-            tf.keras.layers.MaxPool2D(),
+        if maxpooling:
+            self.model = [
+                tf.keras.layers.Conv2D(num_channel, kernel_size, padding='same', kernel_regularizer=kernel_regularizer, kernel_constraint=kernel_constraint),
+                tf.keras.layers.MaxPool2D(),
+            ]
+        else:
+            self.model = [
+                tf.keras.layers.Conv2D(num_channel, kernel_size, strides=2, padding='same', kernel_regularizer=kernel_regularizer, kernel_constraint=kernel_constraint),
+            ]
+
+        self.model += [
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Activation('leaky_relu')
         ]
@@ -108,10 +116,10 @@ class encoder(tf.keras.Model):
     def __init__(self):
         super(encoder, self).__init__()
         self.model = [
-            custom_conv2d(64, 3, dropout=True),
-            custom_conv2d(128, 5, dropout=True),
-            custom_conv2d(256, 3, dropout=True),
-            custom_conv2d(512, 3, dropout=True),
+            custom_conv2d(64, 3, maxpooling=True, dropout=True),
+            custom_conv2d(128, 5, maxpooling=True, dropout=True),
+            custom_conv2d(256, 3, maxpooling=True, dropout=True),
+            custom_conv2d(512, 3, maxpooling=True, dropout=True),
             tf.keras.layers.Flatten(),
             custom_dense(setting.feature_size, dropout=True)
         ]
