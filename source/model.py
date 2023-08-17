@@ -4,8 +4,6 @@ import setting
 
 class WassersteinLoss(tf.keras.losses.Loss):
   def call(self, y_true, y_pred):
-    if tf.reduce_max(y_true) == 0:
-        y_true = -tf.ones_like(y_true)
     return -tf.keras.backend.mean(y_true * y_pred)
 
 class ClipConstraint(tf.keras.constraints.Constraint):

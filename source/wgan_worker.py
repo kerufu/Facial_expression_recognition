@@ -31,7 +31,6 @@ class wgan_worker():
         self.wl = WassersteinLoss()
         self.cfce = tf.keras.losses.CategoricalFocalCrossentropy(from_logits=True, label_smoothing=setting.soft_label_ratio)
 
-        self.g_train_acc_metric = tf.keras.metrics.BinaryAccuracy(threshold=0)
         self.d_train_acc_metric = tf.keras.metrics.BinaryAccuracy(threshold=0)
         self.c_train_acc_metric = tf.keras.metrics.CategoricalAccuracy()
 
@@ -39,7 +38,6 @@ class wgan_worker():
         self.d_train_loss_metric = tf.keras.metrics.Mean()
         self.c_train_loss_metric = tf.keras.metrics.Mean()
 
-        self.g_test_acc_metric = tf.keras.metrics.BinaryAccuracy(threshold=0)
         self.d_test_acc_metric = tf.keras.metrics.BinaryAccuracy(threshold=0)
         self.c_test_acc_metric = tf.keras.metrics.CategoricalAccuracy()
 
@@ -47,8 +45,9 @@ class wgan_worker():
         self.d_test_loss_metric = tf.keras.metrics.Mean()
         self.c_test_loss_metric = tf.keras.metrics.Mean()
 
-    def get_g_loss(self, d_fake):
-        loss = self.wl(tf.ones_like(d_fake), d_fake)
+    def get_g_loss(self, d_fake, condition, c_pred):
+        loss = self.wl(tf.ones_like(d_fake), d_fake) * setting.discriminator_weight
+        loss += self.wl(condition, c_pred)
         return loss
     
     def get_d_loss(self, target, output):
@@ -60,10 +59,10 @@ class wgan_worker():
     @tf.function
     def train_wgan(self, batch):
         image, condition = batch["data"], batch["condition_label"]
+        condition = tf.cast(condition, tf.float32)
         for _ in range(self.d_iteration):
             with tf.GradientTape() as d_tape_true:
                 noise = tf.random.normal([setting.batch_size, setting.feature_size])
-                noise = tf.concat([noise, tf.cast(condition, tf.float32)], 1)
                 
                 d_true = self.d(noise, training=True)
 
@@ -74,17 +73,16 @@ class wgan_worker():
 
             with tf.GradientTape() as d_tape_fake:
                 features = self.g(image)
-                features = tf.concat([features, tf.cast(condition, tf.float32)], 1)
                 
                 d_fake = self.d(features, training=True)
 
-                d_loss_fake = self.get_d_loss(tf.zeros_like(d_fake), d_fake)
+                d_loss_fake = self.get_d_loss(-tf.ones_like(d_fake), d_fake)
 
             d_gradient = d_tape_fake.gradient(d_loss_fake, self.d.trainable_variables)
             self.d_opt.apply_gradients(zip(d_gradient, self.d.trainable_variables))
 
             self.d_train_acc_metric.update_state(tf.ones_like(d_true), d_true)
-            self.d_train_acc_metric.update_state(tf.zeros_like(d_fake), d_fake)
+            self.d_train_acc_metric.update_state(-tf.ones_like(d_fake), d_fake)
 
             self.d_train_loss_metric.update_state(d_loss_true)
             self.d_train_loss_metric.update_state(d_loss_fake)
@@ -92,15 +90,13 @@ class wgan_worker():
         for _ in range(self.g_iteration):
             with tf.GradientTape() as g_tape:
                 features = self.g(image, training=True)
-                features = tf.concat([features, tf.cast(condition, tf.float32)], 1)
                 d_fake = self.d(features)
+                c_pred = self.c(features)
 
-                g_loss = self.get_g_loss(d_fake)
+                g_loss = self.get_g_loss(d_fake, condition, c_pred)
 
             g_gradient = g_tape.gradient(g_loss, self.g.trainable_variables)
             self.g_opt.apply_gradients(zip(g_gradient, self.g.trainable_variables))
-
-            self.g_train_acc_metric.update_state(tf.ones_like(d_fake), d_fake)
 
             self.g_train_loss_metric.update_state(g_loss)
 
@@ -123,28 +119,28 @@ class wgan_worker():
     @tf.function
     def test_wgan(self, batch):
         image, condition = batch["data"], batch["condition_label"]
+        condition = tf.cast(condition, tf.float32)
 
         noise = tf.random.normal([setting.batch_size, setting.feature_size])
-        noise = tf.concat([noise, tf.cast(condition, tf.float32)], 1)
         features = self.g(image)
-        features = tf.concat([features, tf.cast(condition, tf.float32)], 1)
 
         d_true = self.d(noise)
         d_fake = self.d(features)
+        c_pred = self.c(features)
 
         d_loss_true = self.get_d_loss(tf.ones_like(d_true), d_true)
-        d_loss_fake = self.get_d_loss(tf.zeros_like(d_fake), d_fake)
-        g_loss = self.get_g_loss(d_fake)
+        d_loss_fake = self.get_d_loss(-tf.ones_like(d_fake), d_fake)
+        g_loss = self.get_g_loss(d_fake, condition, c_pred)
 
         self.d_test_acc_metric.update_state(tf.ones_like(d_true), d_true)
-        self.d_test_acc_metric.update_state(tf.zeros_like(d_fake), d_fake)
+        self.d_test_acc_metric.update_state(-tf.ones_like(d_fake), d_fake)
 
         self.d_test_loss_metric.update_state(d_loss_true)
         self.d_test_loss_metric.update_state(d_loss_fake)
 
-        self.g_test_acc_metric.update_state(tf.ones_like(d_fake), d_fake)
-
         self.g_test_loss_metric.update_state(g_loss)
+
+        return noise, features
 
     @tf.function
     def test_classifier(self, batch):
@@ -166,7 +162,6 @@ class wgan_worker():
         for epoch_num in range(epoch):
             start = time.time()
             
-            self.g_train_acc_metric.reset_state()
             self.d_train_acc_metric.reset_state()
             self.c_train_acc_metric.reset_state()
 
@@ -186,7 +181,7 @@ class wgan_worker():
                 self.train_wgan(batch)
                 self.train_classifier(batch)
             for batch in validation_dataset.batch(setting.batch_size, drop_remainder=True):
-                self.test_wgan(batch)
+                noise, features = self.test_wgan(batch)
                 self.test_classifier(batch)
 
             self.g.save(setting.wgan_generator_path)
@@ -198,14 +193,16 @@ class wgan_worker():
             print("Train Generator Loss: " + str(self.g_train_loss_metric.result().numpy()))
             print("Test Generator Loss: " + str(self.g_test_loss_metric.result().numpy()))
 
-            print("Train Generator Accuraccy: " + str(self.g_train_acc_metric.result().numpy()))
-            print("Test Generator Accuraccy: " + str(self.g_test_acc_metric.result().numpy()))
-
             print("Train Discriminator Loss: " + str(self.d_train_loss_metric.result().numpy()))
             print("Test Discriminator Loss: " + str(self.d_test_loss_metric.result().numpy()))
 
             print("Train Discriminator Accuraccy: " + str(self.d_train_acc_metric.result().numpy()))
             print("Test Discriminator Accuraccy: " + str(self.d_test_acc_metric.result().numpy()))
+
+            tf.print("Noise Mean: ", tf.math.reduce_mean(noise))
+            tf.print("Noise STD: ", tf.math.reduce_std(noise))
+            tf.print("Feature Mean: ", tf.math.reduce_mean(features))
+            tf.print("Feature STD: ", tf.math.reduce_std(features))
 
             print("Train Classifier Loss: " + str(self.c_train_loss_metric.result().numpy()))
             print("Test Classifier Loss: " + str(self.c_test_loss_metric.result().numpy()))
