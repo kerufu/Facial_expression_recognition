@@ -4,7 +4,7 @@ import setting
 
 class WassersteinLoss(tf.keras.losses.Loss):
   def call(self, y_true, y_pred):
-    return -tf.keras.backend.mean(y_true * y_pred)
+    return -tf.math.reduce_mean(y_true*y_pred)
 
 class ClipConstraint(tf.keras.constraints.Constraint):
     
@@ -202,11 +202,12 @@ class wgan_generator(tf.keras.Model):
     def __init__(self):
         super(wgan_generator, self).__init__()
         self.model = [
-            custom_conv2d(64, 5),
-            custom_conv2d(128, 3),
-            custom_conv2d(256, 2),
+            custom_conv2d(64, 5, dropout=True),
+            custom_conv2d(128, 3, dropout=True),
+            custom_conv2d(256, 3, dropout=True),
+            custom_conv2d(512, 3, dropout=True),
             tf.keras.layers.Flatten(),
-            custom_dense(setting.feature_size)
+            custom_dense(setting.feature_size, dropout=True)
         ]
 
     def call(self, x, training=False):

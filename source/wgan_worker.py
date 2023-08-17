@@ -8,7 +8,7 @@ from model import wgan_generator, wgan_discriminator, classifier, WassersteinLos
 
 class wgan_worker():
 
-    def __init__(self, g_iteration=1, d_iteration=5) -> None:
+    def __init__(self, g_iteration=1, d_iteration=2) -> None:
         self.g_iteration = g_iteration
         self.d_iteration = d_iteration
 
@@ -24,7 +24,7 @@ class wgan_worker():
         except:
             print("wgan model weight not found")
 
-        self.g_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.gradient_clip_norm, weight_decay=setting.weight_decay)
+        self.g_opt = tf.keras.optimizers.RMSprop(learning_rate=setting.learning_rate, clipnorm=setting.gradient_clip_norm, weight_decay=setting.weight_decay)
         self.d_opt = tf.keras.optimizers.RMSprop(learning_rate=setting.learning_rate, clipnorm=setting.gradient_clip_norm, weight_decay=setting.weight_decay)
         self.c_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.gradient_clip_norm, weight_decay=setting.weight_decay)
 
@@ -44,6 +44,9 @@ class wgan_worker():
         self.g_test_loss_metric = tf.keras.metrics.Mean()
         self.d_test_loss_metric = tf.keras.metrics.Mean()
         self.c_test_loss_metric = tf.keras.metrics.Mean()
+
+        self.feature_mean = tf.keras.metrics.Mean()
+        self.feature_std = tf.keras.metrics.Mean()
 
     def get_g_loss(self, d_fake, condition, c_pred):
         loss = self.wl(tf.ones_like(d_fake), d_fake) * setting.discriminator_weight
@@ -82,7 +85,7 @@ class wgan_worker():
             self.d_opt.apply_gradients(zip(d_gradient, self.d.trainable_variables))
 
             self.d_train_acc_metric.update_state(tf.ones_like(d_true), d_true)
-            self.d_train_acc_metric.update_state(-tf.ones_like(d_fake), d_fake)
+            self.d_train_acc_metric.update_state(tf.zeros_like(d_fake), d_fake)
 
             self.d_train_loss_metric.update_state(d_loss_true)
             self.d_train_loss_metric.update_state(d_loss_fake)
@@ -133,14 +136,15 @@ class wgan_worker():
         g_loss = self.get_g_loss(d_fake, condition, c_pred)
 
         self.d_test_acc_metric.update_state(tf.ones_like(d_true), d_true)
-        self.d_test_acc_metric.update_state(-tf.ones_like(d_fake), d_fake)
+        self.d_test_acc_metric.update_state(tf.zeros_like(d_fake), d_fake)
 
         self.d_test_loss_metric.update_state(d_loss_true)
         self.d_test_loss_metric.update_state(d_loss_fake)
 
         self.g_test_loss_metric.update_state(g_loss)
 
-        return noise, features
+        self.feature_mean.update_state(tf.math.reduce_mean(features))
+        self.feature_std.update_state(tf.math.reduce_std(features))
 
     @tf.function
     def test_classifier(self, batch):
@@ -169,7 +173,6 @@ class wgan_worker():
             self.d_train_loss_metric.reset_state()
             self.c_train_loss_metric.reset_state()
 
-            self.g_test_acc_metric.reset_state()
             self.d_test_acc_metric.reset_state()
             self.c_test_acc_metric.reset_state()
 
@@ -177,11 +180,14 @@ class wgan_worker():
             self.d_test_loss_metric.reset_state()
             self.c_test_loss_metric.reset_state()
 
+            self.feature_mean.reset_state()
+            self.feature_std.reset_state()
+
             for batch in train_dataset.batch(setting.batch_size, drop_remainder=True):
                 self.train_wgan(batch)
                 self.train_classifier(batch)
             for batch in validation_dataset.batch(setting.batch_size, drop_remainder=True):
-                noise, features = self.test_wgan(batch)
+                self.test_wgan(batch)
                 self.test_classifier(batch)
 
             self.g.save(setting.wgan_generator_path)
@@ -199,10 +205,8 @@ class wgan_worker():
             print("Train Discriminator Accuraccy: " + str(self.d_train_acc_metric.result().numpy()))
             print("Test Discriminator Accuraccy: " + str(self.d_test_acc_metric.result().numpy()))
 
-            tf.print("Noise Mean: ", tf.math.reduce_mean(noise))
-            tf.print("Noise STD: ", tf.math.reduce_std(noise))
-            tf.print("Feature Mean: ", tf.math.reduce_mean(features))
-            tf.print("Feature STD: ", tf.math.reduce_std(features))
+            print("Feature Mean: " + str(self.feature_mean.result().numpy()))
+            print("Feature STD: " + str(self.feature_std.result().numpy()))
 
             print("Train Classifier Loss: " + str(self.c_train_loss_metric.result().numpy()))
             print("Test Classifier Loss: " + str(self.c_test_loss_metric.result().numpy()))
