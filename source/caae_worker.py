@@ -74,85 +74,90 @@ class caae_worker():
         return self.cfce(one_hot, c_pred)
     
     @tf.function
-    def train_step(self, batch):
+    def train_encoder_discriminator(self, batch):
+        image = batch["data"]
+        with tf.GradientTape() as ed_tape_true:
+            noise = tf.random.normal([setting.batch_size, setting.feature_size])
+            
+            ed_true = self.ed(noise, training=True)
+
+            ed_loss_true = self.get_ed_loss(tf.ones_like(ed_true), ed_true)
+
+        ed_gradient = ed_tape_true.gradient(ed_loss_true, self.ed.trainable_variables)
+        self.ed_opt.apply_gradients(zip(ed_gradient, self.ed.trainable_variables))
+
+        with tf.GradientTape() as ed_tape_fake:
+            features = self.e(image)
+            
+            ed_fake = self.ed(features, training=True)
+
+            ed_loss_fake = self.get_ed_loss(tf.zeros_like(ed_fake), ed_fake)
+
+        ed_gradient = ed_tape_fake.gradient(ed_loss_fake, self.ed.trainable_variables)
+        self.ed_opt.apply_gradients(zip(ed_gradient, self.ed.trainable_variables))
+
+        self.ed_train_metric.update_state(tf.ones_like(ed_true), ed_true)
+        self.ed_train_metric.update_state(tf.zeros_like(ed_fake), ed_fake)
+
+    @tf.function
+    def train_decoder_discriminator(self, batch):
+        image, condition = batch["data"], batch["condition_label"]
+        with tf.GradientTape() as dd_tape_true:
+            dd_true = self.dd(image, training=True)
+
+            dd_loss_true = self.get_dd_loss(tf.ones_like(dd_true), dd_true)
+
+        dd_gradient = dd_tape_true.gradient(dd_loss_true, self.dd.trainable_variables)
+        self.dd_opt.apply_gradients(zip(dd_gradient, self.dd.trainable_variables))
+
+        with tf.GradientTape() as dd_tape_fake:
+            features = self.e(image)
+            decoded_image = self.d(tf.concat([features, tf.cast(condition, tf.float32)], 1))
+
+            dd_fake = self.dd(decoded_image, training=True)
+
+            dd_loss_fake = self.get_dd_loss(tf.zeros_like(dd_fake), dd_fake)
+        
+        dd_gradient = dd_tape_fake.gradient(dd_loss_fake, self.dd.trainable_variables)
+        self.dd_opt.apply_gradients(zip(dd_gradient, self.dd.trainable_variables))
+
+        self.dd_train_metric.update_state(tf.ones_like(dd_true), dd_true)
+        self.dd_train_metric.update_state(tf.zeros_like(dd_fake), dd_fake)
+
+    @tf.function
+    def train_autocoder(self, batch):
         image, condition, one_hot = batch["data"], batch["condition_label"], batch["one_hot_coding_label"]
-        for _ in range(self.ed_iteration):
-            with tf.GradientTape() as ed_tape_true:
-                noise = tf.random.normal([setting.batch_size, setting.feature_size])
-                
-                ed_true = self.ed(noise, training=True)
+        with tf.GradientTape() as e_tape:
+            with tf.GradientTape() as d_tape:
+                features = self.e(image, training=True)
+                decoded_image = self.d(tf.concat([features, tf.cast(condition, tf.float32)], 1), training=True)
+                ed_fake = self.ed(features)
+                dd_fake = self.dd(decoded_image)
+                c_pred = self.c(features)
 
-                ed_loss_true = self.get_ed_loss(tf.ones_like(ed_true), ed_true)
+                e_loss = self.get_e_loss(image, decoded_image, ed_fake, dd_fake, one_hot, c_pred)
+                d_loss = self.get_d_loss(image, decoded_image, dd_fake)
 
-            ed_gradient = ed_tape_true.gradient(ed_loss_true, self.ed.trainable_variables)
-            self.ed_opt.apply_gradients(zip(ed_gradient, self.ed.trainable_variables))
+        e_gradient = e_tape.gradient(e_loss, self.e.trainable_variables)
+        self.e_opt.apply_gradients(zip(e_gradient, self.e.trainable_variables))
+        d_gradient = d_tape.gradient(d_loss, self.d.trainable_variables)
+        self.d_opt.apply_gradients(zip(d_gradient, self.d.trainable_variables))
 
-            with tf.GradientTape() as ed_tape_fake:
-                features = self.e(image)
-                
-                ed_fake = self.ed(features, training=True)
+        self.ae_train_metric.update_state(image, decoded_image)
+    
+    @tf.function
+    def train_classifier(self, batch):
+        image, one_hot = batch["data"], batch["one_hot_coding_label"]
+        with tf.GradientTape() as c_tape:
+            features = self.e(image)
+            c_pred = self.c(features, training=True)
 
-                ed_loss_fake = self.get_ed_loss(tf.zeros_like(ed_fake), ed_fake)
+            c_loss = self.get_c_loss(one_hot, c_pred)
+        
+        c_gradient = c_tape.gradient(c_loss, self.c.trainable_variables)
+        self.c_opt.apply_gradients(zip(c_gradient, self.c.trainable_variables))
 
-            ed_gradient = ed_tape_fake.gradient(ed_loss_fake, self.ed.trainable_variables)
-            self.ed_opt.apply_gradients(zip(ed_gradient, self.ed.trainable_variables))
-
-            self.ed_train_metric.update_state(tf.ones_like(ed_true), ed_true)
-            self.ed_train_metric.update_state(tf.zeros_like(ed_fake), ed_fake)
-
-        for _ in range(self.dd_iteration):
-            with tf.GradientTape() as dd_tape_true:
-                dd_true = self.dd(image, training=True)
-
-                dd_loss_true = self.get_dd_loss(tf.ones_like(dd_true), dd_true)
-
-            dd_gradient = dd_tape_true.gradient(dd_loss_true, self.dd.trainable_variables)
-            self.dd_opt.apply_gradients(zip(dd_gradient, self.dd.trainable_variables))
-
-            with tf.GradientTape() as dd_tape_fake:
-                features = self.e(image)
-                decoded_image = self.d(tf.concat([features, tf.cast(condition, tf.float32)], 1))
-
-                dd_fake = self.dd(decoded_image, training=True)
-
-                dd_loss_fake = self.get_dd_loss(tf.zeros_like(dd_fake), dd_fake)
-            
-            dd_gradient = dd_tape_fake.gradient(dd_loss_fake, self.dd.trainable_variables)
-            self.dd_opt.apply_gradients(zip(dd_gradient, self.dd.trainable_variables))
-
-            self.dd_train_metric.update_state(tf.ones_like(dd_true), dd_true)
-            self.dd_train_metric.update_state(tf.zeros_like(dd_fake), dd_fake)
-
-        for _ in range(self.ae_iteration):
-            with tf.GradientTape() as e_tape:
-                with tf.GradientTape() as d_tape:
-                    features = self.e(image, training=True)
-                    decoded_image = self.d(tf.concat([features, tf.cast(condition, tf.float32)], 1), training=True)
-                    ed_fake = self.ed(features)
-                    dd_fake = self.dd(decoded_image)
-                    c_pred = self.c(features)
-
-                    e_loss = self.get_e_loss(image, decoded_image, ed_fake, dd_fake, one_hot, c_pred)
-                    d_loss = self.get_d_loss(image, decoded_image, dd_fake)
-
-            e_gradient = e_tape.gradient(e_loss, self.e.trainable_variables)
-            self.e_opt.apply_gradients(zip(e_gradient, self.e.trainable_variables))
-            d_gradient = d_tape.gradient(d_loss, self.d.trainable_variables)
-            self.d_opt.apply_gradients(zip(d_gradient, self.d.trainable_variables))
-
-            self.ae_train_metric.update_state(image, decoded_image)
-
-        for _ in range(self.c_iteration):
-            with tf.GradientTape() as c_tape:
-                features = self.e(image)
-                c_pred = self.c(features, training=True)
-
-                c_loss = self.get_c_loss(one_hot, c_pred)
-            
-            c_gradient = c_tape.gradient(c_loss, self.c.trainable_variables)
-            self.c_opt.apply_gradients(zip(c_gradient, self.c.trainable_variables))
-
-            self.c_train_metric.update_state(one_hot, c_pred)
+        self.c_train_metric.update_state(one_hot, c_pred)
 
     @tf.function
     def test_step(self, batch):
@@ -192,7 +197,15 @@ class caae_worker():
             self.c_test_metric.reset_state()
 
             for batch in train_dataset.batch(setting.batch_size):
-                self.train_step(batch)
+                for _ in range(self.ed_iteration):
+                    self.train_encoder_discriminator(batch)
+                for _ in range(self.dd_iteration):
+                    self.train_decoder_discriminator(batch)
+                for _ in range(self.ae_iteration):
+                    self.train_autocoder(batch)
+                for _ in range(self.c_iteration):
+                    self.train_classifier(batch)
+                
             for batch in validation_dataset.batch(setting.batch_size):
                 image = batch["data"][0, :]
                 decoded_image = self.test_step(batch)[0, :]
