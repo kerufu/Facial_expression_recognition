@@ -4,6 +4,7 @@ import setting
 
 class WassersteinLoss(tf.keras.losses.Loss):
     def __init__(self, label_smoothing=False):
+        super(WassersteinLoss, self).__init__()
         self.label_smoothing = label_smoothing
 
     def call(self, y_true, y_pred):
