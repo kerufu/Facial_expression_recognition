@@ -30,7 +30,7 @@ class wgan_worker():
         self.c_opt = tf.keras.optimizers.RMSprop(learning_rate=setting.learning_rate, clipnorm=setting.gradient_clip_norm, weight_decay=setting.weight_decay)
 
         self.wl = WassersteinLoss()
-        self.cfce = tf.keras.losses.CategoricalFocalCrossentropy(from_logits=True, label_smoothing=setting.soft_label_ratio)
+        self.cfce = tf.keras.losses.CategoricalFocalCrossentropy(from_logits=True, label_smoothing=setting.label_smoothing_ratio)
 
         self.d_train_acc_metric = tf.keras.metrics.BinaryAccuracy(threshold=0)
         self.c_train_acc_metric = tf.keras.metrics.CategoricalAccuracy()

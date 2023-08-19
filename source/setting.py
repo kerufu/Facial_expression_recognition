@@ -1,3 +1,5 @@
+import math
+
 train_dataset_path = "dataset/train"
 validation_dataset_path = "dataset/validation"
 expression_classes = [
@@ -39,7 +41,8 @@ weight_decay = None
 sample_image = "sample_image.jpg"
 sample_decoded_image = "sample_decoded_image.jpg"
 
-soft_label_ratio = 0.1
+label_smoothing_ratio = 0.1
+label_smoothing_logit_threshold = math.log(label_smoothing_ratio/(1-label_smoothing_ratio))
 
 learning_rate = 0.0001
 gradient_clip_norm = 1.0

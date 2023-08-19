@@ -39,8 +39,8 @@ class caae_worker():
         self.c_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.gradient_clip_norm, weight_decay=setting.weight_decay)
 
         self.mse = tf.keras.losses.MeanSquaredError()
-        self.bfce = tf.keras.losses.BinaryFocalCrossentropy(from_logits=True, label_smoothing=setting.soft_label_ratio)
-        self.cfce = tf.keras.losses.CategoricalFocalCrossentropy(from_logits=True, label_smoothing=setting.soft_label_ratio)
+        self.bfce = tf.keras.losses.BinaryFocalCrossentropy(from_logits=True, label_smoothing=setting.label_smoothing_ratio)
+        self.cfce = tf.keras.losses.CategoricalFocalCrossentropy(from_logits=True, label_smoothing=setting.label_smoothing_ratio)
 
         self.ae_train_metric = tf.keras.metrics.MeanSquaredError()
         self.ed_train_metric = tf.keras.metrics.BinaryAccuracy(threshold=0)

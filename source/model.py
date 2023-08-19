@@ -3,8 +3,14 @@ import tensorflow as tf
 import setting
 
 class WassersteinLoss(tf.keras.losses.Loss):
-  def call(self, y_true, y_pred):
-    return -tf.math.reduce_mean(y_true*y_pred)
+    def __init__(self, label_smoothing=False):
+        self.label_smoothing = label_smoothing
+
+    def call(self, y_true, y_pred):
+        if self.label_smoothing:
+            return tf.math.reduce_mean(tf.math.abs(y_pred+y_true*setting.label_smoothing_logit_threshold)+setting.label_smoothing_logit_threshold)
+        else:
+            return -tf.math.reduce_mean(y_true*y_pred)
 
 class ClipConstraint(tf.keras.constraints.Constraint):
     
