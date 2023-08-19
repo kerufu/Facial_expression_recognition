@@ -211,10 +211,10 @@ class wgan_generator(tf.keras.Model):
     def __init__(self):
         super(wgan_generator, self).__init__()
         self.model = [
-            custom_conv2d(64, 5, dropout=True),
-            custom_conv2d(128, 3, dropout=True),
-            custom_conv2d(256, 3, dropout=True),
-            custom_conv2d(512, 3, dropout=True),
+            custom_conv2d(64, 3, maxpooling=True, dropout=True),
+            custom_conv2d(128, 5, maxpooling=True, dropout=True),
+            custom_conv2d(256, 3, maxpooling=True, dropout=True),
+            custom_conv2d(512, 3, maxpooling=True, dropout=True),
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(setting.feature_size),
             tf.keras.layers.BatchNormalization()
