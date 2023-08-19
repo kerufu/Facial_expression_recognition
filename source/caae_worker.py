@@ -54,14 +54,14 @@ class caae_worker():
    
     def get_e_loss(self, input_image, output_image, ed_fake, dd_fake, one_hot, c_pred):
         loss = self.mse(input_image, output_image)
-        loss += self.bfce(tf.ones_like(ed_fake), ed_fake) * setting.discriminator_weight
-        loss += self.bfce(tf.ones_like(dd_fake), dd_fake) * setting.discriminator_weight
+        loss += self.bfce(tf.ones_like(ed_fake), ed_fake) * setting.caae_discriminator_weight
+        loss += self.bfce(tf.ones_like(dd_fake), dd_fake) * setting.caae_discriminator_weight
         loss += self.cfce(one_hot, c_pred)
         return loss
     
     def get_d_loss(self, input_image, output_image, dd_fake):
         loss = self.mse(input_image, output_image)
-        loss += self.bfce(tf.ones_like(dd_fake), dd_fake) * setting.discriminator_weight
+        loss += self.bfce(tf.ones_like(dd_fake), dd_fake) * setting.caae_discriminator_weight
         return loss  + tf.add_n(self.d.losses)
     
     def get_ed_loss(self, target, output):

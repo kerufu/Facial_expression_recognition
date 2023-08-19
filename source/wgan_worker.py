@@ -8,7 +8,7 @@ from model import wgan_generator, wgan_discriminator, classifier, WassersteinLos
 
 class wgan_worker():
 
-    def __init__(self, g_iteration=1, d_iteration=2) -> None:
+    def __init__(self, g_iteration=1, d_iteration=1) -> None:
         self.g_iteration = g_iteration
         self.d_iteration = d_iteration
 
@@ -26,7 +26,7 @@ class wgan_worker():
 
         self.g_opt = tf.keras.optimizers.RMSprop(learning_rate=setting.learning_rate, clipnorm=setting.gradient_clip_norm, weight_decay=setting.weight_decay)
         self.d_opt = tf.keras.optimizers.RMSprop(learning_rate=setting.learning_rate, clipnorm=setting.gradient_clip_norm, weight_decay=setting.weight_decay)
-        self.c_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.gradient_clip_norm, weight_decay=setting.weight_decay)
+        self.c_opt = tf.keras.optimizers.RMSprop(learning_rate=setting.learning_rate, clipnorm=setting.gradient_clip_norm, weight_decay=setting.weight_decay)
 
         self.wl = WassersteinLoss()
         self.cfce = tf.keras.losses.CategoricalFocalCrossentropy(from_logits=True, label_smoothing=setting.soft_label_ratio)
@@ -49,7 +49,7 @@ class wgan_worker():
         self.feature_std = tf.keras.metrics.Mean()
 
     def get_g_loss(self, d_fake, condition, c_pred):
-        loss = self.wl(tf.ones_like(d_fake), d_fake) * setting.discriminator_weight
+        loss = self.wl(tf.ones_like(d_fake), d_fake) * setting.wgan_discriminator_weight
         loss += self.wl(condition, c_pred)
         return loss
     
@@ -106,6 +106,7 @@ class wgan_worker():
     @tf.function
     def train_classifier(self, batch):
         image, one_hot = batch["data"], batch["one_hot_coding_label"]
+        
         with tf.GradientTape() as c_tape:
             features = self.g(image)
             c_pred = self.c(features, training=True)
@@ -189,9 +190,10 @@ class wgan_worker():
             for batch in validation_dataset.batch(setting.batch_size, drop_remainder=True):
                 self.test_wgan(batch)
                 self.test_classifier(batch)
-
-            self.g.save(setting.wgan_generator_path)
-            self.d.save(setting.wgan_discriminator_path)
+            if self.g_iteration:
+                self.g.save(setting.wgan_generator_path)
+            if self.d_iteration:
+                self.d.save(setting.wgan_discriminator_path)
             self.c.save(setting.classifier_path)
 
             cprint('Time for epoch {} is {} sec'.format(epoch_num + 1, time.time()-start), 'red')

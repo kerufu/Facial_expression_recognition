@@ -25,5 +25,9 @@ if model == "1":
     mw = caae_worker(int(aei), int(edi), int(ddi), int(ci))
     mw.train(int(epoch), dw.train_dataset, dw.validation_dataset)
 elif model == "2":
-    mw = wgan_worker()
+    gi = input("Please enter number of generator iteration: ")
+    print("You entered: " + gi)
+    di = input("Please enter number of discriminator iteration: ")
+    print("You entered: " + di)
+    mw = wgan_worker(int(gi), int(di))
     mw.train(int(epoch), dw.train_dataset, dw.validation_dataset)

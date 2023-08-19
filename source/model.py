@@ -207,7 +207,8 @@ class wgan_generator(tf.keras.Model):
             custom_conv2d(256, 3, dropout=True),
             custom_conv2d(512, 3, dropout=True),
             tf.keras.layers.Flatten(),
-            custom_dense(setting.feature_size, dropout=True)
+            tf.keras.layers.Dense(setting.feature_size),
+            tf.keras.layers.BatchNormalization()
         ]
 
     def call(self, x, training=False):

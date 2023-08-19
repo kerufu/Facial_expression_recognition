@@ -27,7 +27,8 @@ wgan_generator_path = "saved_model/wgan_generator"
 wgan_discriminator_path = "saved_model/wgan_discriminator"
 
 
-discriminator_weight = 0.1
+caae_discriminator_weight = 0.1
+wgan_discriminator_weight = 0.1
 
 batch_size = 64
 
@@ -43,4 +44,4 @@ soft_label_ratio = 0.1
 learning_rate = 0.0001
 gradient_clip_norm = 1.0
 
-kernal_clip_value = 0.01
+kernal_clip_value = 0.05
