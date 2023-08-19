@@ -58,7 +58,7 @@ class wgan_worker():
         return self.wl(target, output) + tf.add_n(self.d.losses)
     
     def get_c_loss(self, one_hot, c_pred):
-        return self.cfce(one_hot, c_pred)
+        return self.wl(one_hot, c_pred)
     
     @tf.function
     def train_wgan_discriminator(self, batch):
@@ -109,13 +109,15 @@ class wgan_worker():
 
     @tf.function
     def train_classifier(self, batch):
-        image, one_hot = batch["data"], batch["one_hot_coding_label"]
+        # image, one_hot = batch["data"], batch["one_hot_coding_label"]
+        image, condition = batch["data"], batch["condition_label"]
+        condition = tf.cast(condition, tf.float32)
         
         with tf.GradientTape() as c_tape:
             features = self.g(image)
             c_pred = self.c(features, training=True)
 
-            c_loss = self.get_c_loss(one_hot, c_pred)
+            c_loss = self.get_c_loss(condition, c_pred)
         
         c_gradient = c_tape.gradient(c_loss, self.c.trainable_variables)
         self.c_opt.apply_gradients(zip(c_gradient, self.c.trainable_variables))
@@ -139,7 +141,7 @@ class wgan_worker():
         d_loss_true = self.get_d_loss(tf.ones_like(d_true), d_true)
         d_loss_fake = self.get_d_loss(-tf.ones_like(d_fake), d_fake)
         g_loss = self.get_g_loss(d_fake, condition, c_pred)
-        c_loss = self.get_c_loss(one_hot, c_pred)
+        c_loss = self.get_c_loss(condition, c_pred)
 
         self.d_test_acc_metric.update_state(tf.ones_like(d_true), d_true)
         self.d_test_acc_metric.update_state(tf.zeros_like(d_fake), d_fake)
