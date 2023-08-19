@@ -29,5 +29,7 @@ elif model == "2":
     print("You entered: " + gi)
     di = input("Please enter number of discriminator iteration: ")
     print("You entered: " + di)
-    mw = wgan_worker(int(gi), int(di))
+    ci = input("Please enter number of classifier iteration: ")
+    print("You entered: " + ci)
+    mw = wgan_worker(int(gi), int(di), int(ci))
     mw.train(int(epoch), dw.train_dataset, dw.validation_dataset)
