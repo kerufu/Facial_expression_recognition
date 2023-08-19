@@ -31,6 +31,7 @@ wgan_discriminator_path = "saved_model/wgan_discriminator"
 
 caae_discriminator_weight = 0.1
 wgan_discriminator_weight = 0.05
+gradient_penalty_weight = 1
 
 batch_size = 64
 

@@ -29,7 +29,7 @@ class wgan_worker():
         self.d_opt = tf.keras.optimizers.RMSprop(learning_rate=setting.learning_rate, clipnorm=setting.gradient_clip_norm, weight_decay=setting.weight_decay)
         self.c_opt = tf.keras.optimizers.Adam(learning_rate=setting.learning_rate, clipnorm=setting.gradient_clip_norm, weight_decay=setting.weight_decay)
 
-        self.wl = WassersteinLoss(label_smoothing=True)
+        self.wl = WassersteinLoss(label_smoothing=False)
         self.cfce = tf.keras.losses.CategoricalFocalCrossentropy(from_logits=True, label_smoothing=setting.label_smoothing_ratio)
 
         self.d_train_acc_metric = tf.keras.metrics.BinaryAccuracy(threshold=0)
@@ -54,40 +54,49 @@ class wgan_worker():
         loss += self.wl(condition, c_pred)
         return loss
     
-    def get_d_loss(self, target, output):
-        return self.wl(target, output) + tf.add_n(self.d.losses)
+    def get_d_loss(self, noise, features, d_true, d_fake):
+        loss = self.wl(tf.ones_like(d_true), d_true)
+        loss += self.wl(-tf.ones_like(d_fake), d_fake)
+        loss += tf.add_n(self.d.losses)
+        loss += self.gradient_penalty(noise, features) * setting.gradient_penalty_weight
+        return loss
     
     def get_c_loss(self, one_hot, c_pred):
         return self.cfce(one_hot, c_pred)
+    
+    def gradient_penalty(self, noise, features):
+        
+        temp_shape = [noise.shape[0]] + [1 for _ in range(len(noise.shape)-1)]
+        epsilon = tf.random.uniform(temp_shape, 0.0, 1.0)
+        mix = epsilon * noise + (1 - epsilon) * features
+        
+        with tf.GradientTape() as tape:
+            tape.watch(mix)
+            d_hat = self.d(mix)
+        gradients = tape.gradient(d_hat, mix)
+        
+        g_norm2 = tf.sqrt(tf.reduce_sum(gradients**2, axis=[dim for dim in range(1, len(noise.shape))]))
+        d_regularizer = tf.reduce_mean((g_norm2-1.0)**2)
+        return d_regularizer
     
     @tf.function
     def train_wgan_discriminator(self, batch):
         image = batch["data"]
         with tf.GradientTape() as d_tape_true:
             noise = tf.random.normal([setting.batch_size, setting.feature_size])
-            
-            d_true = self.d(noise, training=True)
-
-            d_loss_true = self.get_d_loss(tf.ones_like(d_true), d_true)
-
-        d_gradient = d_tape_true.gradient(d_loss_true, self.d.trainable_variables)
-        self.d_opt.apply_gradients(zip(d_gradient, self.d.trainable_variables))
-
-        with tf.GradientTape() as d_tape_fake:
             features = self.g(image)
             
+            d_true = self.d(noise, training=True)
             d_fake = self.d(features, training=True)
 
-            d_loss_fake = self.get_d_loss(-tf.ones_like(d_fake), d_fake)
+            d_loss = self.get_d_loss(noise, features, d_true, d_fake)
 
-        d_gradient = d_tape_fake.gradient(d_loss_fake, self.d.trainable_variables)
+        d_gradient = d_tape_true.gradient(d_loss, self.d.trainable_variables)
         self.d_opt.apply_gradients(zip(d_gradient, self.d.trainable_variables))
 
-        self.d_train_acc_metric.update_state(tf.ones_like(d_true), d_true)
         self.d_train_acc_metric.update_state(tf.zeros_like(d_fake), d_fake)
 
-        self.d_train_loss_metric.update_state(d_loss_true)
-        self.d_train_loss_metric.update_state(d_loss_fake)
+        self.d_train_loss_metric.update_state(d_loss)
 
     @tf.function
     def train_wgan_generator(self, batch):
@@ -105,7 +114,6 @@ class wgan_worker():
         self.g_opt.apply_gradients(zip(g_gradient, self.g.trainable_variables))
 
         self.g_train_loss_metric.update_state(g_loss)
-
 
     @tf.function
     def train_classifier(self, batch):
@@ -136,16 +144,14 @@ class wgan_worker():
         d_fake = self.d(features)
         c_pred = self.c(features)
 
-        d_loss_true = self.get_d_loss(tf.ones_like(d_true), d_true)
-        d_loss_fake = self.get_d_loss(-tf.ones_like(d_fake), d_fake)
+        d_loss = self.get_d_loss(noise, features, d_true, d_fake)
         g_loss = self.get_g_loss(d_fake, condition, c_pred)
         c_loss = self.get_c_loss(one_hot, c_pred)
 
         self.d_test_acc_metric.update_state(tf.ones_like(d_true), d_true)
         self.d_test_acc_metric.update_state(tf.zeros_like(d_fake), d_fake)
 
-        self.d_test_loss_metric.update_state(d_loss_true)
-        self.d_test_loss_metric.update_state(d_loss_fake)
+        self.d_test_loss_metric.update_state(d_loss)
 
         self.g_test_loss_metric.update_state(g_loss)
 
@@ -180,14 +186,14 @@ class wgan_worker():
             self.feature_mean.reset_state()
             self.feature_std.reset_state()
 
-            for batch in train_dataset.batch(setting.batch_size):
+            for batch in train_dataset.batch(setting.batch_size, drop_remainder=True):
                 for _ in range(self.d_iteration):
                     self.train_wgan_discriminator(batch)
                 for _ in range(self.g_iteration):
                     self.train_wgan_generator(batch)
                 for _ in range(self.c_iteration):
                     self.train_classifier(batch)
-            for batch in validation_dataset.batch(setting.batch_size):
+            for batch in validation_dataset.batch(setting.batch_size, drop_remainder=True):
                 self.test_step(batch)
             if self.g_iteration:
                 self.g.save(setting.wgan_generator_path)
@@ -214,5 +220,3 @@ class wgan_worker():
 
             print("Train Classifier Accuraccy: " + str(self.c_train_acc_metric.result().numpy()))
             print("Test Classifier Accuraccy: " + str(self.c_test_acc_metric.result().numpy()))
-
-            
