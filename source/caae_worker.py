@@ -196,14 +196,17 @@ class caae_worker():
             self.dd_test_metric.reset_state()
             self.c_test_metric.reset_state()
 
-            for batch in train_dataset.batch(setting.batch_size):
-                for _ in range(self.ed_iteration):
+            for _ in range(self.ed_iteration):
+                for batch in train_dataset.batch(setting.batch_size):
                     self.train_encoder_discriminator(batch)
-                for _ in range(self.dd_iteration):
+            for _ in range(self.dd_iteration):
+                for batch in train_dataset.batch(setting.batch_size):
                     self.train_decoder_discriminator(batch)
-                for _ in range(self.ae_iteration):
+            for _ in range(self.ae_iteration):
+                for batch in train_dataset.batch(setting.batch_size):
                     self.train_autocoder(batch)
-                for _ in range(self.c_iteration):
+            for _ in range(self.c_iteration):
+                for batch in train_dataset.batch(setting.batch_size):
                     self.train_classifier(batch)
                 
             for batch in validation_dataset.batch(setting.batch_size):
