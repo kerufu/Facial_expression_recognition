@@ -186,15 +186,19 @@ class wgan_worker():
             self.feature_mean.reset_state()
             self.feature_std.reset_state()
 
-            for batch in train_dataset.batch(setting.batch_size, drop_remainder=True):
-                for _ in range(self.d_iteration):
+            for _ in range(self.d_iteration):
+                for batch in train_dataset.batch(setting.batch_size, drop_remainder=True):
                     self.train_wgan_discriminator(batch)
-                for _ in range(self.g_iteration):
+            for _ in range(self.g_iteration):
+                for batch in train_dataset.batch(setting.batch_size, drop_remainder=True):
                     self.train_wgan_generator(batch)
-                for _ in range(self.c_iteration):
+            for _ in range(self.c_iteration):
+                for batch in train_dataset.batch(setting.batch_size, drop_remainder=True):
                     self.train_classifier(batch)
+                    
             for batch in validation_dataset.batch(setting.batch_size, drop_remainder=True):
-                self.test_step(batch)
+                for batch in train_dataset.batch(setting.batch_size, drop_remainder=True):
+                    self.test_step(batch)
             if self.g_iteration:
                 self.g.save(setting.wgan_generator_path)
             if self.d_iteration:
