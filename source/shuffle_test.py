@@ -5,14 +5,10 @@ def printDs(ds):
     for example in ds.take(ds.cardinality()):
         print(example)
 
-data = list(range(5000))
+data = list(range(500))
 ds = tf.data.Dataset.from_tensor_slices(data)
 
-ds = ds.shuffle(5000//3, reshuffle_each_iteration=True)
-
-ds = ds.batch(64)
-
-ds = ds.shuffle(10, reshuffle_each_iteration=True)
+ds = ds.shuffle(500//3, reshuffle_each_iteration=True).batch(64)
 
 for _ in range(50):
     printDs(ds)
