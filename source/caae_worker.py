@@ -199,17 +199,14 @@ class caae_worker():
             train_dataset = train_dataset.shuffle(train_dataset.cardinality()//setting.shuffle_buffer_size_divider)
             batched_train_dataset = train_dataset.batch(setting.batch_size)
             
-            for _ in range(self.ed_iteration):
-                for batch in batched_train_dataset:
+            for batch in batched_train_dataset:
+                for _ in range(self.ed_iteration):
                     self.train_encoder_discriminator(batch)
-            for _ in range(self.dd_iteration):
-                for batch in batched_train_dataset:
+                for _ in range(self.dd_iteration):
                     self.train_decoder_discriminator(batch)
-            for _ in range(self.ae_iteration):
-                for batch in batched_train_dataset:
+                for _ in range(self.ae_iteration):
                     self.train_autocoder(batch)
-            for _ in range(self.c_iteration):
-                for batch in batched_train_dataset:
+                for _ in range(self.c_iteration):
                     self.train_classifier(batch)
                 
             for batch in batched_validation_dataset:

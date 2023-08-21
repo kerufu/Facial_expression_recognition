@@ -188,14 +188,12 @@ class wgan_worker():
             train_dataset = train_dataset.shuffle(train_dataset.cardinality()//setting.shuffle_buffer_size_divider)
             batched_train_dataset = train_dataset.batch(setting.batch_size, drop_remainder=True)
 
-            for _ in range(self.d_iteration):
-                for batch in batched_train_dataset:
+            for batch in batched_train_dataset:
+                for _ in range(self.d_iteration):
                     self.train_wgan_discriminator(batch)
-            for _ in range(self.g_iteration):
-                for batch in batched_train_dataset:
+                for _ in range(self.g_iteration):
                     self.train_wgan_generator(batch)
-            for _ in range(self.c_iteration):
-                for batch in batched_train_dataset:
+                for _ in range(self.c_iteration):
                     self.train_classifier(batch)
                     
             for batch in batched_validation_dataset:
