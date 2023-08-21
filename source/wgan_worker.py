@@ -185,7 +185,8 @@ class wgan_worker():
             self.feature_mean.reset_state()
             self.feature_std.reset_state()
 
-            batched_train_dataset = train_dataset.shuffle(train_dataset.cardinality()).batch(setting.batch_size, drop_remainder=True)
+            train_dataset = train_dataset.shuffle(train_dataset.cardinality()//setting.shuffle_buffer_size_divider)
+            batched_train_dataset = train_dataset.batch(setting.batch_size, drop_remainder=True)
 
             for _ in range(self.d_iteration):
                 for batch in batched_train_dataset:

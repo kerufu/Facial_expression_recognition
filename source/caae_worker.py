@@ -196,7 +196,8 @@ class caae_worker():
             self.dd_test_metric.reset_state()
             self.c_test_metric.reset_state()
 
-            batched_train_dataset = train_dataset.shuffle(train_dataset.cardinality()).batch(setting.batch_size)
+            train_dataset = train_dataset.shuffle(train_dataset.cardinality()//setting.shuffle_buffer_size_divider)
+            batched_train_dataset = train_dataset.batch(setting.batch_size)
             
             for _ in range(self.ed_iteration):
                 for batch in batched_train_dataset:
