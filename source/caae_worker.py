@@ -182,8 +182,8 @@ class caae_worker():
         return decoded_image
     
     def train(self, epoch, train_dataset, validation_dataset):
-        train_dataset = train_dataset.shuffle(train_dataset.cardinality(), reshuffle_each_iteration=True)
-        validation_dataset = validation_dataset.shuffle(validation_dataset.cardinality(), reshuffle_each_iteration=True)
+        batched_validation_dataset = validation_dataset.batch(setting.batch_size)
+
         for epoch_num in range(epoch):
             start = time.time()
             self.ae_train_metric.reset_state()
@@ -196,20 +196,22 @@ class caae_worker():
             self.dd_test_metric.reset_state()
             self.c_test_metric.reset_state()
 
+            batched_train_dataset = train_dataset.shuffle(train_dataset.cardinality()).batch(setting.batch_size)
+            
             for _ in range(self.ed_iteration):
-                for batch in train_dataset.batch(setting.batch_size):
+                for batch in batched_train_dataset:
                     self.train_encoder_discriminator(batch)
             for _ in range(self.dd_iteration):
-                for batch in train_dataset.batch(setting.batch_size):
+                for batch in batched_train_dataset:
                     self.train_decoder_discriminator(batch)
             for _ in range(self.ae_iteration):
-                for batch in train_dataset.batch(setting.batch_size):
+                for batch in batched_train_dataset:
                     self.train_autocoder(batch)
             for _ in range(self.c_iteration):
-                for batch in train_dataset.batch(setting.batch_size):
+                for batch in batched_train_dataset:
                     self.train_classifier(batch)
                 
-            for batch in validation_dataset.batch(setting.batch_size):
+            for batch in batched_validation_dataset:
                 image = batch["data"][0, :]
                 decoded_image = self.test_step(batch)[0, :]
 
