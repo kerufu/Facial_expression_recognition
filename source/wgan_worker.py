@@ -163,7 +163,8 @@ class wgan_worker():
         self.c_test_loss_metric.update_state(c_loss)
 
     def train(self, epoch, train_dataset, validation_dataset):
-        batched_validation_dataset = validation_dataset.batch(setting.batch_size, drop_remainder=True)
+        train_dataset = train_dataset.shuffle(train_dataset.cardinality()//setting.shuffle_buffer_size_divider, reshuffle_each_iteration=True).batch(setting.batch_size)
+        validation_dataset = validation_dataset.shuffle(validation_dataset.cardinality()).batch(setting.batch_size, drop_remainder=True)
 
         for epoch_num in range(epoch):
             start = time.time()
@@ -185,10 +186,7 @@ class wgan_worker():
             self.feature_mean.reset_state()
             self.feature_std.reset_state()
 
-            train_dataset = train_dataset.shuffle(train_dataset.cardinality()//setting.shuffle_buffer_size_divider)
-            batched_train_dataset = train_dataset.batch(setting.batch_size, drop_remainder=True)
-
-            for batch in batched_train_dataset:
+            for batch in train_dataset:
                 for _ in range(self.d_iteration):
                     self.train_wgan_discriminator(batch)
                 for _ in range(self.g_iteration):
@@ -196,7 +194,7 @@ class wgan_worker():
                 for _ in range(self.c_iteration):
                     self.train_classifier(batch)
                     
-            for batch in batched_validation_dataset:
+            for batch in validation_dataset:
                 self.test_step(batch)
                 
             if self.g_iteration:
