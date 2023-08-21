@@ -49,3 +49,5 @@ learning_rate = 0.0001
 gradient_clip_norm = 1.0
 
 kernal_clip_value = 0.05
+
+shuffle_buffer_size_divider = 2
