@@ -163,7 +163,7 @@ class wgan_worker():
         self.c_test_loss_metric.update_state(c_loss)
 
     def train(self, epoch, train_dataset, validation_dataset):
-        train_dataset = train_dataset.shuffle(train_dataset.cardinality()//setting.shuffle_buffer_size_divider, reshuffle_each_iteration=True).batch(setting.batch_size)
+        train_dataset = train_dataset.shuffle(train_dataset.cardinality()//setting.shuffle_buffer_size_divider, reshuffle_each_iteration=True).batch(setting.batch_size, drop_remainder=True)
         validation_dataset = validation_dataset.shuffle(validation_dataset.cardinality()).batch(setting.batch_size, drop_remainder=True)
 
         for epoch_num in range(epoch):
