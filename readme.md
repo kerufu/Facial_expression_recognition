@@ -37,8 +37,8 @@ https://machinelearningmastery.com/practical-guide-to-gan-failure-modes/
 https://davidleonfdez.github.io/gan/2022/05/17/gan-convergence-stability.html
 
 Hints:
-1. Shuffle and batch tf.data.Dataset casefully
+1. Shuffle and batch tf.data.Dataset carefully
 2. "selu" ≈ "BatchNormalization" + "leaky_relu", don't use "selu" + "BatchNormalization"
-3. Gradient penalty or label smoothingwhen discriminator is unstable
+3. Gradient penalty or label smoothing when discriminator is unstable
 4. Wasserstein loss is compatible with cross entropy from logit
 5. Maxpooling for classification cnn, stride for generation cnn
