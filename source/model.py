@@ -125,7 +125,7 @@ class encoder(tf.keras.Model):
             custom_conv2d(256, 3, maxpooling=True),
             custom_conv2d(512, 3, maxpooling=True),
             tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(setting.feature_size)
+            tf.keras.layers.Dense(setting.feature_size, activation="tanh")
         ]
 
     def call(self, x, training=False):
@@ -193,7 +193,6 @@ class classifier(tf.keras.Model):
     def __init__(self):
         super(classifier, self).__init__()
         self.model = [
-            tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Dense(setting.num_classes)
         ]
 
@@ -213,7 +212,7 @@ class wgan_generator(tf.keras.Model):
             custom_conv2d(256, 3, maxpooling=True),
             custom_conv2d(512, 3, maxpooling=True),
             tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(setting.feature_size)
+            tf.keras.layers.Dense(setting.feature_size, activation="tanh")
         ]
 
     def call(self, x, training=False):
