@@ -83,7 +83,7 @@ class wgan_worker():
     def train_wgan_discriminator(self, batch):
         image = batch["data"]
         with tf.GradientTape() as d_tape_true:
-            noise = tf.random.normal([setting.batch_size, setting.feature_size])
+            noise = tf.random.uniform([setting.batch_size, setting.feature_size], minval=-1, maxval=1)
             features = self.g(image)
             
             d_true = self.d(noise, training=True)
@@ -137,7 +137,7 @@ class wgan_worker():
         image, condition, one_hot = batch["data"], batch["condition_label"], batch["one_hot_coding_label"]
         condition = tf.cast(condition, tf.float32)
 
-        noise = tf.random.normal([setting.batch_size, setting.feature_size])
+        noise = tf.random.uniform([setting.batch_size, setting.feature_size], minval=-1, maxval=1)
         features = self.g(image)
 
         d_true = self.d(noise)

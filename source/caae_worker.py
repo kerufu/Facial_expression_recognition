@@ -77,7 +77,7 @@ class caae_worker():
     def train_encoder_discriminator(self, batch):
         image = batch["data"]
         with tf.GradientTape() as ed_tape_true:
-            noise = tf.random.normal([setting.batch_size, setting.feature_size])
+            noise = tf.random.uniform([setting.batch_size, setting.feature_size], minval=-1, maxval=1)
             
             ed_true = self.ed(noise, training=True)
 
@@ -162,7 +162,7 @@ class caae_worker():
     @tf.function
     def test_step(self, batch):
         image, condition, one_hot = batch["data"], batch["condition_label"], batch["one_hot_coding_label"]
-        noise = tf.random.normal([setting.batch_size, setting.feature_size])
+        noise = tf.random.uniform([setting.batch_size, setting.feature_size], minval=-1, maxval=1)
 
         features = self.e(image)
         decoded_image = self.d(tf.concat([features, tf.cast(condition, tf.float32)], 1))
