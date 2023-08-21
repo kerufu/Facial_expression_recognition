@@ -46,8 +46,8 @@ class wgan_worker():
         self.d_test_loss_metric = tf.keras.metrics.Mean()
         self.c_test_loss_metric = tf.keras.metrics.Mean()
 
-        self.feature_mean = tf.keras.metrics.MeanTensor()
-        self.feature_std = tf.keras.metrics.MeanTensor()
+        self.feature_mean = tf.keras.metrics.Mean()
+        self.feature_std = tf.keras.metrics.Mean()
 
     def get_g_loss(self, d_fake, condition, c_pred):
         loss = self.wl(tf.ones_like(d_fake), d_fake) * setting.wgan_discriminator_weight
@@ -155,8 +155,8 @@ class wgan_worker():
 
         self.g_test_loss_metric.update_state(g_loss)
 
-        self.feature_mean.update_state(tf.math.reduce_mean(features, 0))
-        self.feature_std.update_state(tf.math.reduce_std(features, 0))
+        self.feature_mean.update_state(tf.math.reduce_mean(features))
+        self.feature_std.update_state(tf.math.reduce_std(features))
 
         self.c_test_acc_metric.update_state(one_hot, c_pred)
 
