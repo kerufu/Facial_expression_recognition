@@ -4,6 +4,10 @@ Reason:
 1. GAN based data augmentation, more precisely train encoder and classifier (the only two module actually running after deployment), achieve better performance with the same model scale
 2. with finer training, kernal regularization and dropout (redundant neurals) can be removed, the scale of model to train increases but scale of  model to inference decreases
 
+Test procedure:
+1. Disable discriminator and scale dowm model until overfitting and test acc significantly degenerates
+2. Gradually add weight on discriminator to mitigate overfitting
+
 the encoded features are in range (-1, 1), the conditional label (expression class) are in one hot coding, e.g. 1, -1 , -1, ...
 
 dataset: https://www.kaggle.com/datasets/jonathanoheix/face-expression-recognition-dataset?resource=download
