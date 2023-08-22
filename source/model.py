@@ -123,7 +123,6 @@ class encoder(tf.keras.Model):
         self.model = [
             custom_conv2d(128, 5, maxpooling=True),
             custom_conv2d(256, 3, maxpooling=True),
-            custom_conv2d(512, 3, maxpooling=True),
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(setting.feature_size),
             tf.keras.layers.BatchNormalization()
@@ -211,7 +210,6 @@ class wgan_generator(tf.keras.Model):
         self.model = [
             custom_conv2d(128, 5, maxpooling=True),
             custom_conv2d(256, 3, maxpooling=True),
-            custom_conv2d(512, 3, maxpooling=True),
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(setting.feature_size),
             tf.keras.layers.BatchNormalization()
