@@ -69,7 +69,7 @@ class encoder(tf.keras.Model):
             custom_conv2d(512, 3),
             tf.keras.layers.Flatten(),
             custom_dense(256),
-            custom_dense(setting.feature_size)
+            tf.keras.layers.Dense(setting.feature_size),
         ]
 
     def call(self, x, training=False):
@@ -138,6 +138,7 @@ class classifier(tf.keras.Model):
     def __init__(self):
         super(classifier, self).__init__()
         self.model = [
+            tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Dense(setting.num_classes)
         ]
 

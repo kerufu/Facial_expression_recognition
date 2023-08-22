@@ -24,15 +24,20 @@ test_metric = tf.keras.metrics.CategoricalAccuracy()
 def train_step(batch):
     image, one_hot = batch["data"], batch["one_hot_coding_label"]
     with tf.GradientTape() as tape_e:
-        with tf.GradientTape() as tape_c:
-            features = e(image, training=True)
-            pred = c(features, training=True)
-            loss_e = cfce(one_hot, pred)
+        features = e(image, training=True)
+        pred = c(features, training=True)
+        loss_e = cfce(one_hot, pred)
 
-            loss_c = cfce(one_hot, pred)
 
     gradient_e = tape_e.gradient(loss_e, e.trainable_variables)
     e_opt.apply_gradients(zip(gradient_e, e.trainable_variables))
+
+
+    with tf.GradientTape() as tape_c:
+        features = e(image, training=True)
+        pred = c(features, training=True)
+
+        loss_c = cfce(one_hot, pred)
 
     gradient_c = tape_c.gradient(loss_c, c.trainable_variables)
     c_opt.apply_gradients(zip(gradient_c, c.trainable_variables))
@@ -50,11 +55,12 @@ def test_step(batch):
 
 def train(epoch):
     dw = dataset_worker()
-
-    train_dataset = dw.train_dataset.shuffle(setting.batch_size, reshuffle_each_iteration=True)
+    train_dataset = dw.train_dataset
+    validation_dataset = dw.validation_dataset
+    validation_dataset = validation_dataset.shuffle(validation_dataset.cardinality(), reshuffle_each_iteration=True)
+    train_dataset = train_dataset.shuffle(train_dataset.cardinality(), reshuffle_each_iteration=True)
     train_dataset = train_dataset.batch(setting.batch_size)
 
-    validation_dataset = dw.validation_dataset.shuffle(setting.batch_size, reshuffle_each_iteration=True)
     validation_dataset = validation_dataset.batch(setting.batch_size)
 
     for epoch_num in range(epoch):
