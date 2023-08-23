@@ -1,8 +1,8 @@
 Expolore application of GAN in classification, experiment in CAAE and WGAN
 
 Reason:
-1. GAN based data augmentation, more precisely train encoder and classifier (the only two module actually running after deployment), achieve better performance with the same model scale
-2. with finer training, kernal regularization and dropout (redundant neurals) can be removed, the scale of model to train increases but scale of  model to inference decreases
+1. GAN based data augmentation, inject randomness to middle feature directly
+2. Inspired by knowledge distillation, replacing kernal regularization and dropout (redundant neurals)
 
 Test procedure:
 1. Disable discriminator and scale dowm model until overfitting and test acc significantly degenerates
