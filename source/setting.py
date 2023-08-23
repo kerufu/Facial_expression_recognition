@@ -28,8 +28,8 @@ classifier_path = "saved_model/classifier"
 wgan_generator_path = "saved_model/wgan_generator"
 wgan_discriminator_path = "saved_model/wgan_discriminator"
 
-caae_discriminator_weight = 0.2
-wgan_discriminator_weight = 0
+caae_discriminator_weight = 1.5
+wgan_discriminator_weight = 0.6
 gradient_penalty_weight = 1
 
 batch_size = 64

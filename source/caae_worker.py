@@ -51,6 +51,9 @@ class caae_worker():
         self.ed_test_metric = tf.keras.metrics.BinaryAccuracy(threshold=0)
         self.dd_test_metric = tf.keras.metrics.BinaryAccuracy(threshold=0)
         self.c_test_metric = tf.keras.metrics.CategoricalAccuracy()
+
+        self.feature_mean = tf.keras.metrics.Mean()
+        self.feature_std = tf.keras.metrics.Mean()
    
     def get_e_loss(self, input_image, output_image, ed_fake, dd_fake, one_hot, c_pred):
         loss = self.mse(input_image, output_image)
@@ -179,6 +182,10 @@ class caae_worker():
         self.ae_test_metric.update_state(image, decoded_image)
         self.c_test_metric.update_state(one_hot, c_pred)
 
+        self.feature_mean.update_state(tf.math.reduce_mean(features))
+        self.feature_std.update_state(tf.math.reduce_std(features))
+
+
         return decoded_image
     
     def train(self, epoch, train_dataset, validation_dataset):
@@ -196,6 +203,9 @@ class caae_worker():
             self.ed_test_metric.reset_state()
             self.dd_test_metric.reset_state()
             self.c_test_metric.reset_state()
+
+            self.feature_mean.reset_state()
+            self.feature_std.reset_state()
             
             for batch in train_dataset:
                 for _ in range(self.ed_iteration):
@@ -234,6 +244,9 @@ class caae_worker():
 
             print("Train Decoder Discriminator Accuracy: " + str(self.dd_train_metric.result().numpy()))
             print("Test Decoder Discriminator Accuracy: " + str(self.dd_test_metric.result().numpy()))
+
+            print("Feature Mean: " + str(self.feature_mean.result().numpy()))
+            print("Feature STD: " + str(self.feature_std.result().numpy()))
 
             print("Train Classifier Accuracy: " + str(self.c_train_metric.result().numpy()))
             print("Test Classifier Accuracy: " + str(self.c_test_metric.result().numpy()))
