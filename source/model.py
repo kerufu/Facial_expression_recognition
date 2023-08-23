@@ -124,8 +124,7 @@ class encoder(tf.keras.Model):
             custom_conv2d(64, 5, maxpooling=True),
             custom_conv2d(128, 3, maxpooling=True),
             tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(setting.feature_size),
-            tf.keras.layers.BatchNormalization()
+            tf.keras.layers.Dense(setting.feature_size)
         ]
 
     def call(self, x, training=False):
