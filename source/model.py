@@ -192,6 +192,8 @@ class classifier(tf.keras.Model):
     def __init__(self):
         super(classifier, self).__init__()
         self.model = [
+            custom_dense(256),
+            custom_dense(128),
             tf.keras.layers.Dense(setting.num_classes)
         ]
 
