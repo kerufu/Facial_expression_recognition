@@ -1,4 +1,4 @@
-Expolore application of GAN in classification, experiment in CAAE and WGAN
+Expolore application of GAN in classification, experiment in CAAE and WGAN 
 
 Reason:
 1. GAN based data augmentation, inject randomness to middle layer feature directly
@@ -55,6 +55,7 @@ Hints:
 3. Gradient penalty or label smoothing when discriminator is unstable
 4. Maxpooling for classification cnn, stride for generation cnn
 5. Allocate more than one dense layer in classifier, otherwise it doesn't have sufficient capability to learn the distribution of the augmented feature
+6. KL divergence may replace feature discriminator, not tested.
 
 More reference:
 
