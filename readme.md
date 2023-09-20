@@ -15,7 +15,9 @@ CAAE works better than WGAN, possibly because:
 2. Didn't find paper/blog about smoothing label with Wasserstein loss 
 2. More information loss without auto encoder architecture
 
-Keep only 2 small conv2d layer in encoder. The model and settings are in branch "scale_down_model". 
+For full size model: 65% acc
+
+For scaled_down model: Keep only 2 small conv2d layer in encoder. The model and settings are in branch "scale_down_model". 
 
 The model is trained for 50 epoches.
 
