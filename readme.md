@@ -57,7 +57,8 @@ Hints:
 3. Gradient penalty or label smoothing when discriminator is unstable
 4. Maxpooling for classification cnn, stride for generation cnn
 5. Allocate more than one dense layer in classifier, otherwise it doesn't have sufficient capability to learn the distribution of the augmented feature
-6. KL divergence may replace feature discriminator, not fully verified.
+6. KL divergence may replace feature discriminator, not fully verified
+7. I used Flatten() bacause this model is not for image generation, and GANs are simply supporting the training of classifier. Reshape conditional label instead of flatten image if model is for image generation
 
 More reference:
 
