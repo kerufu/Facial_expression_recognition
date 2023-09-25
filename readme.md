@@ -21,9 +21,9 @@ For full size model: 65% acc
 
 For scaled_down model: Keep only 2 small conv2d layer in encoder. The model and settings are in branch "scale_down_model". 
 
-50.2% Acc without support modules. Significantly overfitting very soon and degenerate to around 41% Acc.
+Without support modules: 50.2% Acc, significantly overfitting very soon and degenerate to around 41% Acc.
 
-52.6% Acc with support modules and not significantly overfitting yet.
+With support modules: 52.6% Acc, not significantly overfitting yet.
 
 Model settings:
 
