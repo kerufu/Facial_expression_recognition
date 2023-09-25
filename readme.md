@@ -1,4 +1,4 @@
-Expolore application of GAN in classification, experiment in CAAE and WGAN 
+Explore application of GAN in classification, experiment in CAAE and WGAN 
 
 Reason:
 1. GAN based data augmentation, inject randomness to middle layer feature directly
