@@ -45,8 +45,8 @@ class custom_conv2d(tf.keras.layers.Layer):
             ]
 
         self.model += [
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Activation('leaky_relu')
+            tf.keras.layers.Activation('leaky_relu'),
+            tf.keras.layers.BatchNormalization()
         ]
         if dropout:
             self.model.append(tf.keras.layers.Dropout(setting.dropout_ratio))
@@ -74,8 +74,8 @@ class custom_conv2dtp(tf.keras.layers.Layer):
 
         self.model = [
             tf.keras.layers.Conv2DTranspose(num_channel, kernel_size, strides=2, padding='same', kernel_regularizer=kernel_regularizer, kernel_constraint=kernel_constraint),
-            tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Activation('leaky_relu'),
+            tf.keras.layers.BatchNormalization()
         ]
         if dropout:
             self.model.append(tf.keras.layers.Dropout(setting.dropout_ratio))
@@ -103,8 +103,8 @@ class custom_dense(tf.keras.layers.Layer):
 
         self.model = [
             tf.keras.layers.Dense(output_size, kernel_regularizer=kernel_regularizer, kernel_constraint=kernel_constraint),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Activation('leaky_relu')
+            tf.keras.layers.Activation('leaky_relu'),
+            tf.keras.layers.BatchNormalization()
         ]
         if dropout:
             self.model.append(tf.keras.layers.Dropout(setting.dropout_ratio))
