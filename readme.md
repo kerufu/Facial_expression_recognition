@@ -1,4 +1,4 @@
-Expolore application of GAN in classification, experiment in CAAE and WGAN 
+Explore application of GAN in classification, experiment in CAAE and WGAN 
 
 Reason:
 1. GAN based data augmentation, inject randomness to middle layer feature directly
@@ -21,9 +21,9 @@ For full size model: 65% acc
 
 For scaled_down model: Keep only 2 small conv2d layer in encoder. The model and settings are in branch "scale_down_model". 
 
-50.2% Acc without support modules. Significantly overfitting very soon and degenerate to around 41% Acc.
+Without support modules: 50.2% Acc, significantly overfitting very soon and degenerate to around 41% Acc.
 
-52.6% Acc with support modules and not significantly overfitting yet.
+With support modules: 52.6% Acc, not significantly overfitting yet.
 
 Model settings:
 
@@ -58,6 +58,7 @@ Hints:
 4. Maxpooling for classification cnn, stride for generation cnn
 5. Allocate more than one dense layer in classifier, otherwise it doesn't have sufficient capability to learn the distribution of the augmented feature
 6. KL divergence may replace feature discriminator, not fully verified
+7. I used Flatten() bacause this model is not for image generation, and GANs are simply supporting the training of classifier. Reshape conditional label instead of flatten image if model is for image generation
 
 More reference:
 
